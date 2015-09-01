@@ -1,0 +1,23 @@
+{
+  "name": "Polymer Dev Tool Extension",
+  "version": "0.0.0",
+  "description": "Shows information about Polymer elements",
+  "devtools_page": "devtools.html",
+  "permissions": [
+    "tabs",
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>", "*://*/*", "http://*/*", "https://*/*",
+        "https://www.polymer-project.org/summit"],
+      "js": ["elementZones.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "manifest_version": 2
+}
