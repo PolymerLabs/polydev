@@ -2,7 +2,7 @@ console.log("devtools.html loaded!!!");
 
 chrome.devtools.panels.create("Polymer",
   "icon.png",
-  "polymer.html",
+  "src/polymer.html",
   function(panel) {
     console.log("after polymer.html loaded!!!");
   }

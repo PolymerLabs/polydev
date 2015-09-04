@@ -1,0 +1,14 @@
+{
+  "name": "polydev",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "zone.js": "^0.5.2"
+  },
+  "devDependencies": {
+    "babel": "^5.8.21",
+    "event-stream": "^3.3.1",
+    "gulp": "^3.9.0",
+    "gulp-babel": "^5.2.0"
+  }
+}

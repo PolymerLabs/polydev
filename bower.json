@@ -1,0 +1,19 @@
+{
+  "name": "polydev",
+  "version": "0.0.0",
+  "authors": [
+    "Justin Fagnani <justin@fagnani.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components"
+  ],
+  "dependencies": {
+    "imd": "PolymerLabs/imd#export"
+  },
+  "devDependencies": {
+    "polymer": "Polymer/polymer#~1.1.1"
+  }
+}
