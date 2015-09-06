@@ -19,6 +19,7 @@ backgroundPageConnection.onMessage.addListener(function (message, sender) {
     while (statsContainer.firstChild) {
       statsContainer.removeChild(statsContainer.firstChild);
     }
+
     var table = document.createElement('table');
     var header = document.createElement('tr');
     table.appendChild(header);
@@ -26,15 +27,14 @@ backgroundPageConnection.onMessage.addListener(function (message, sender) {
     var elementHeader = document.createElement('th');
     elementHeader.appendChild(document.createTextNode('Element'));
     header.appendChild(elementHeader);
+
     var timeHeader = document.createElement('th');
     timeHeader.appendChild(document.createTextNode('Count'));
     header.appendChild(timeHeader);
+
     var timeHeader = document.createElement('th');
     timeHeader.appendChild(document.createTextNode('Time'));
     header.appendChild(timeHeader);
-    // var keysHeader = document.createElement('th');
-    // keysHeader.appendChild(document.createTextNode('Data'));
-    // header.appendChild(keysHeader);
 
     var createdHeader = document.createElement('th');
     createdHeader.appendChild(document.createTextNode('Created'));
@@ -55,49 +55,43 @@ backgroundPageConnection.onMessage.addListener(function (message, sender) {
     var data = message.data;
     for (var tag in data) {
       var tagData = data[tag];
+      var totalTime = 0;
+      totalTime += (tagData.created) ? tagData.created.totalTime : 0;
+      totalTime += (tagData.attached) ? tagData.attached.totalTime : 0;
+      totalTime += (tagData.detached) ? tagData.detached.totalTime : 0;
+      totalTime += (tagData.attributeChanged) ? tagData.attributeChanged.totalTime : 0;
+
       var row = document.createElement('tr');
+
       var tagCell = document.createElement('td');
       tagCell.appendChild(document.createTextNode(tag));
       row.appendChild(tagCell);
+
       var countCell = document.createElement('td');
-      countCell.appendChild(document.createTextNode('' + tagData.count));
+      countCell.appendChild(document.createTextNode(`${tagData.count}`));
       row.appendChild(countCell);
+
       var timeCell = document.createElement('td');
-      timeCell.appendChild(document.createTextNode('' + tagData.totalTime.toFixed(3)));
+      timeCell.appendChild(document.createTextNode(totalTime.toFixed(3)));
       row.appendChild(timeCell);
-      // var keysCell = document.createElement('td');
-      // keysCell.appendChild(document.createTextNode('' + JSON.stringify(data[tag])));
-      // row.appendChild(keysCell);
 
       var createdCell = document.createElement('td');
-      var createdTime = ' ';
-      try {
-        createdTime = ' ' + tagData.created.totalTime.toFixed(3);
-      } catch (e) {}
+      var createdTime = (tagData.created) ? tagData.created.totalTime.toFixed(3) : '';
       createdCell.appendChild(document.createTextNode(createdTime));
       row.appendChild(createdCell);
 
       var attachedCell = document.createElement('td');
-      var attachedTime = ' ';
-      try {
-        attachedTime = ' ' + tagData.attached.totalTime.toFixed(3);
-      } catch (e) {}
+      var attachedTime = (tagData.attached) ? tagData.attached.totalTime.toFixed(3) : '';
       attachedCell.appendChild(document.createTextNode(attachedTime));
       row.appendChild(attachedCell);
 
       var detachedCell = document.createElement('td');
-      var detachedTime = ' ';
-      try {
-        detachedTime = ' ' + tagData.detached.totalTime.toFixed(3);
-      } catch (e) {}
+      var detachedTime = (tagData.detached) ? tagData.detached.totalTime.toFixed(3) : '';
       detachedCell.appendChild(document.createTextNode(detachedTime));
       row.appendChild(detachedCell);
 
       var attributesCell = document.createElement('td');
-      var attributesTime = ' ';
-      try {
-        attributesTime = ' ' + tagData.attributeChanged.totalTime.toFixed(3);
-      } catch (e) {}
+      var attributesTime = (tagData.attributeChanged) ? tagData.attributeChanged.totalTime.toFixed(3) : '';
       attributesCell.appendChild(document.createTextNode(attributesTime));
       row.appendChild(attributesCell);
 
@@ -112,20 +106,9 @@ backgroundPageConnection.postMessage({
   tabId: chrome.devtools.inspectedWindow.tabId,
 });
 
-// window.addEventListener("message", function(event) {
-//   console.log("message", event);
-// });
-
 document.addEventListener("DOMContentLoaded", function(event) {
   document.querySelector('#status').textContent = 'Ready';
   document.querySelector('#go').addEventListener('click', function() {
-    // Relay the tab ID to the background page
-    // chrome.runtime.sendMessage('kcoiaofoedgogmnganogddeagelgkcgh', {
-    // // chrome.runtime.sendMessage({
-    //   messageType: 'get_times',
-    //   tabId: chrome.devtools.inspectedWindow.tabId,
-    // });
-
     backgroundPageConnection.postMessage({
       messageType: 'get-element-stats',
       tabId: chrome.devtools.inspectedWindow.tabId,

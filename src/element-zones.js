@@ -18,7 +18,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     let tagZones = new Map();
     let tagZoneStack = [];
-    let callbackZoneStack = []
+    let callbackZoneStack = [];
     let originalRegisterElement = document.registerElement;
     window._elementTagZones = tagZones;
 
@@ -26,6 +26,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       let statsZone = parentZone.fork({
         'beforeTask': function () {
           // console.log('beforeTask', this.$id, this.tagName, this.name, this);
+
+          console.timeline(this.tagName + '.' + name);
+          console.log(this.tagName + '.' + name);
 
           if (zoneStack.length > 0) {
             // we're already in a zone, so pause its timers
@@ -48,6 +51,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           let currentZone = zoneStack.pop();
           console.assert(currentZone === this, currentZone, this);
 
+          console.timelineEnd(this.tagName + '.' + name);
+          console.log(this.tagName + '.' + name);
+
           let stats = this.stats;
           let taskTime = performance.now() - stats.startTime;
           stats.totalTime += taskTime;
@@ -65,7 +71,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         totalTime: 0,
         startTime: 0,
       };
-      if (name) {
+      if (name && parentZone.stats) {
         parentZone.stats[name] = statsZone.stats;
         statsZone.name = name;
       }
@@ -142,7 +148,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           };
         }
       }
-      _Polymer.apply(this, arguments);
+      return _Polymer.apply(this, arguments);
     }
 
     // replace window.Polymer with accessors so we can wrap calls to Polymer()
