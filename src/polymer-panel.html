@@ -1,0 +1,200 @@
+<!doctype html>
+
+<html>
+  <head>
+    <link rel="import" href="../bower_components/polymer/polymer.html">
+    <link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+    <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+    <link rel="import" href="../bower_components/paper-button/paper-button.html">
+    <link rel="import" href="../bower_components/paper-material/paper-material.html">
+    <link rel="import" href="../bower_components/paper-styles/paper-styles.html">
+    <style is="custom-style">
+      body {
+        background: var(--paper-grey-100);
+      }
+    </style>
+  </head>
+  <body>
+    <dom-module id="polymer-panel">
+      <style>
+      h1 {
+        @apply(--paper-font-headline);
+      }
+      div.table {
+        display: table;
+        border-collapse: collapse;
+        margin: 8px 0;
+      }
+      div.row, div.header-row {
+        display: table-row;
+      }
+      div.row:hover {
+        background-color: var(--paper-blue-100);
+      }
+      div.header, div.cell {
+        display: table-cell;
+        padding: 4px 8px;
+        border: solid 1px #aaa;
+      }
+      div.header {
+        @apply(--paper-font-body1);
+        font-size: 10px;
+      }
+      div.cell {
+        text-align: right;
+        @apply(--paper-font-code1);
+        font-size: 10px;
+      }
+      div.cell.total {
+        font-weight: bold !important;
+      }
+      div.cell.name {
+        text-align: left;
+        color: var(--paper-pink-700);
+      }
+      paper-button {
+        background-color: var(--paper-blue-400);
+        color: white;
+      }
+      paper-material {
+        background: white;
+        margin: 32px;
+        padding: 8px 12px;
+      }
+      </style>
+      <template>
+        <paper-material elevation="1">
+          <h1>Custom Element Profile</h1>
+          <paper-button on-click="_getData">
+            <iron-icon icon="refresh"></iron-icon> Load
+          </paper-button>
+          <template is="dom-if" if="{{stats}}">
+            <div class="table">
+              <div class="header-row">
+                <div class="header">Tag Name</div>
+                <div class="header">Count</div>
+                <div class="header">Total Time</div>
+                <div class="header">Created</div>
+                <div class="header">Attached</div>
+                <div class="header">Detached</div>
+                <div class="header">Attributes</div>
+              </div>
+              <template is="dom-repeat" items="{{stats}}">
+                <div class="row">
+                  <div class="cell name">{{item.tagName}}</div>
+                  <div class="cell">{{item.count}}</div>
+                  <div class="cell total" style$="{{_style(item, 'totalTime')}}">{{_num(item.totalTime)}}</div>
+                  <div class="cell" style$="{{_style(item, 'created')}}">{{_num(item.created)}}</div>
+                  <div class="cell" style$="{{_style(item, 'attached')}}">{{_num(item.attached)}}</div>
+                  <div class="cell" style$="{{_style(item, 'detached')}}">{{_num(item.detached)}}</div>
+                  <div class="cell" style$="{{_style(item, 'attributeChanged')}}">{{_num(item.attributeChanged)}}</div>
+                </div>
+              </template>
+            </div>
+          </template>
+        </paper-material>
+      </template>
+      <script>
+(function() {
+  'use strict';
+
+  let precision = 2;
+
+  Polymer({
+    is: 'polymer-panel',
+
+    properties: {
+      stats: {
+        type: Array,
+      },
+
+      allTagsStats: {
+        type: Object,
+      },
+
+    },
+
+    attached() {
+      this._backgroundPageConnection = chrome.runtime.connect({
+        name: 'polymer-panel',
+      });
+
+      this._backgroundPageConnection.onMessage.addListener((message, sender) => {
+        if (message.messageType && message.messageType === 'element-stats') {
+          let displayData = [];
+          let allTagsStats = {
+            tagName: 'All Custom Elements',
+            count: 0,
+            totalTime: 0,
+            created: 0,
+            attached: 0,
+            detached: 0,
+            attributeChanged: 0,
+          };
+          displayData.push(allTagsStats);
+          for (let tag in message.data) {
+            let tagData = message.data[tag];
+            let tagStats = {
+              tagName: tag,
+              count: tagData.count,
+              totalTime: 0,
+              created: (tagData.created) ? tagData.created.totalTime : 0,
+              attached: (tagData.attached) ? tagData.attached.totalTime : 0,
+              detached: (tagData.detached) ? tagData.detached.totalTime : 0,
+              attributeChanged: (tagData.attributeChanged) ?
+                  tagData.attributeChanged.totalTime : 0,
+            };
+            tagStats.totalTime =
+                tagStats.created +
+                tagStats.attached +
+                tagStats.detached +
+                tagStats.attributeChanged;
+            displayData.push(tagStats);
+            allTagsStats.count += tagStats.count;
+            allTagsStats.totalTime += tagStats.totalTime;
+            allTagsStats.created += tagStats.created;
+            allTagsStats.attached += tagStats.attached;
+            allTagsStats.detached += tagStats.detached;
+            allTagsStats.attributeChanged += tagStats.attributeChanged;
+          }
+          displayData.sort((a, b) => b.totalTime - a.totalTime);
+          this.stats = displayData;
+          this.allTagsStats = allTagsStats;
+        }
+      });
+
+      // Register with the background page so it can send us messages based on
+      // tab ID.
+      this._backgroundPageConnection.postMessage({
+        messageType: 'tab-id',
+        tabId: chrome.devtools.inspectedWindow.tabId,
+      });
+
+    },
+
+    _getData() {
+      this._backgroundPageConnection.postMessage({
+        messageType: 'get-element-stats',
+        tabId: chrome.devtools.inspectedWindow.tabId,
+      });
+    },
+
+    _num(n) {
+      return (typeof n === 'number') ? n.toFixed(precision) : '';
+    },
+
+    _style(item, property) {
+      if (item === this.allTagsStats) {
+        return '';
+      }
+      let percent = item[property] / this.allTagsStats[property];
+      return `background: rgba(255, 0, 0, ${percent})`;
+    }
+
+  });
+})();
+      </script>
+    </dom-module>
+    <polymer-panel></polymer-panel>
+  </body>
+</html>

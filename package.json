@@ -9,6 +9,7 @@
     "babel": "^5.8.21",
     "event-stream": "^3.3.1",
     "gulp": "^3.9.0",
-    "gulp-babel": "^5.2.0"
+    "gulp-babel": "^5.2.0",
+    "gulp-crisper": "0.0.5"
   }
 }

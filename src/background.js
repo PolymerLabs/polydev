@@ -17,13 +17,20 @@ var polymerPanelPorts = new Map();
 // listen for polymer devtools panel, and element-zones content
 // script connections
 chrome.extension.onConnect.addListener(function(port) {
-	if (port.name == "polymer-panel") {
-		console.log('background devtools-page.onConnect', port);
+	if (port.name == 'polymer-panel') {
+		console.log('polymer-panel connected', port);
+
 		port.onMessage.addListener(function(message, port) {
 			console.log('from polymer-panel', message, port);
 			if (message.messageType && message.messageType == 'tab-id') {
+				console.log('polymer-page tab-id', message.tabId);
 				// save the port to the polymer devtools panel
 				polymerPanelPorts.set(message.tabId, port);
+
+				port.postMessage({
+					messageType: 'handshake',
+				});
+
 			} else if (message.messageType && message.messageType == 'get-element-stats') {
 				// relay to content script
 				var tabId = message.tabId;
@@ -33,7 +40,8 @@ chrome.extension.onConnect.addListener(function(port) {
 				});
 			}
 		});
-	} else if (port.name == "element-zones") {
+
+	} else if (port.name =='element-zones') {
 		console.log('element-zones.onConnect', port, port.sender.tab.id);
 		// save the port to the element-zones content script
 		pagePorts.set(port.sender.tab.id, port);
@@ -67,24 +75,3 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 		console.log('background get_times');
 	}
 });
-
-//
-// // Background page -- background.js
-// chrome.runtime.onConnect.addListener(function(devToolsConnection) {
-// 	console.log('chrome.runtime.onConnect');
-// 	console.dir(devToolsConnection);
-//
-//   // assign the listener function to a variable so we can remove it later
-//   var devToolsListener = function(message, sender, sendResponse) {
-// 		console.log('devToolsConnection.onMessage', message, sender);
-//     // Inject a content script into the identified tab
-//     chrome.tabs.executeScript(message.tabId,
-//         { file: message.scriptToInject });
-//   }
-//   // add the listener
-//   devToolsConnection.onMessage.addListener(devToolsListener);
-//
-//   devToolsConnection.onDisconnect.addListener(function() {
-//        devToolsConnection.onMessage.removeListener(devToolsListener);
-//   });
-// });

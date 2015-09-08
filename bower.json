@@ -11,7 +11,11 @@
     "bower_components"
   ],
   "dependencies": {
-    "imd": "PolymerLabs/imd#export"
+    "imd": "PolymerLabs/imd#export",
+    "iron-icon": "PolymerElements/iron-icon#~1.0.4",
+    "iron-icons": "PolymerElements/iron-icons#~1.0.3",
+    "paper-button": "PolymerElements/paper-button#~1.0.4",
+    "paper-material": "PolymerElements/paper-material#~1.0.2"
   },
   "devDependencies": {
     "polymer": "Polymer/polymer#~1.1.1"

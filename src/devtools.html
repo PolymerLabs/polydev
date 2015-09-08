@@ -15,7 +15,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <head>
   </head>
   <body>
-    <h1>Polydev</h1>
-    <script src="devtools.js"></script>
+    <script>
+      chrome.devtools.panels.create("Polymer",
+        "icon.png",
+        "src/polymer-panel.html",
+        function(panel) {
+          console.log("polymer-panel.html loaded");
+        }
+      );
+    </script>
   </body>
 </html>

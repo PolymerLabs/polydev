@@ -14,10 +14,14 @@
     {
       "matches": ["<all_urls>", "*://*/*", "http://*/*", "https://*/*",
         "https://www.polymer-project.org/summit"],
-      "js": ["vendor/zone-microtask.js", "src/element-zones.js"],
+      "js": ["src/content-script.js"],
       "run_at": "document_start"
     }
   ],
   "devtools_page": "src/devtools.html",
+  "web_accessible_resources": [
+    "vendor/zone-microtask.js",
+    "vendor/element-zones.js"
+  ],
   "manifest_version": 2
 }
