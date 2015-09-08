@@ -1,6 +1,6 @@
 {
   "name": "Polymer Dev Tool Extension",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Shows information about Polymer elements",
   "permissions": [
     "tabs",

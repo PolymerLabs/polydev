@@ -27,8 +27,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <body>
     <dom-module id="polymer-panel">
       <style>
+      div.title {
+        display: flex;
+        flex-direction: row;
+        align-items: baseline;
+      }
       h1 {
         @apply(--paper-font-headline);
+        flex: 1;
       }
       div.table {
         display: table;
@@ -62,22 +68,28 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         text-align: left;
         color: var(--paper-pink-700);
       }
-      paper-button {
-        background-color: var(--paper-blue-400);
-        color: white;
+      paper-button.blue {
+        color: var(--paper-light-blue-500);
+        --paper-button-flat-focus-color: var(--paper-light-blue-50);
+      }
+      paper-button.blue:hover {
+        background: var(--paper-light-blue-50);
       }
       paper-material {
         background: white;
         margin: 32px;
         padding: 8px 12px;
+        display: inline-block;
       }
       </style>
       <template>
         <paper-material elevation="1">
-          <h1>Custom Element Profile</h1>
-          <paper-button on-click="_getData">
-            <iron-icon icon="refresh"></iron-icon> Load
-          </paper-button>
+          <div class="title">
+            <h1>Custom Element Profile</h1>
+            <paper-button on-click="_getData">
+              <iron-icon icon="refresh"></iron-icon> Refresh
+            </paper-button>
+          </div>
           <template is="dom-if" if="{{stats}}">
             <div class="table">
               <div class="header-row">
@@ -141,6 +153,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             detached: 0,
             attributeChanged: 0,
           };
+          this.maxCallbackTime = 0;
           displayData.push(allTagsStats);
           for (let tag in message.data) {
             let tagData = message.data[tag];
@@ -160,6 +173,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 tagStats.detached +
                 tagStats.attributeChanged;
             displayData.push(tagStats);
+            this.maxCallbackTime = Math.max(this.maxCallbackTime, tagStats.created,
+                tagStats.attached, tagStats.detached, tagStats.attributeChanged);
             allTagsStats.count += tagStats.count;
             allTagsStats.totalTime += tagStats.totalTime;
             allTagsStats.created += tagStats.created;
@@ -180,6 +195,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         tabId: chrome.devtools.inspectedWindow.tabId,
       });
 
+      this._getData();
     },
 
     _getData() {
@@ -197,8 +213,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       if (item === this.allTagsStats) {
         return '';
       }
-      let percent = item[property] / this.allTagsStats[property];
-      return `background: rgba(255, 0, 0, ${percent})`;
+      if (property == 'totalTime') {
+        if (this.allTagsStats.totalTime == 0) {
+          return '';
+        }
+        let percent = item[property] / this.allTagsStats.totalTime;
+        let alpha = Math.sqrt(percent);
+        return `background: rgba(244, 67, 54, ${alpha})`;
+      } else {
+        if (this.maxCallbackTime == 0) {
+          return '';
+        }
+        let percent = item[property] / this.maxCallbackTime;
+        let alpha = Math.sqrt(percent);
+        return `background: rgba(255, 152, 0, ${alpha})`;
+      }
     }
 
   });

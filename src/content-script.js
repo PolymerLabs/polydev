@@ -24,7 +24,6 @@
 
   // Forward requests for element stats to the target page.
   backgroundPageConnection.onMessage.addListener(function(request, sender, sendResponse) {
-    console.log('onMessage', request);
     window.postMessage({
       messageType: 'get-element-stats',
     }, '*');
@@ -60,7 +59,6 @@
       console.error(xhr.statusText);
     };
     xhr.send(null);
-    console.log(`returning ${localUrl}`);
     return response;
   }
 
