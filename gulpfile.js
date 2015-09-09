@@ -30,8 +30,13 @@ gulp.task('src', function() {
 
 gulp.task('bower', function () {
   return es.merge(
-      gulp.src(['!bower_components/{element-zones,element-zones/**}', 'bower_components/**/*.html'])
+      gulp.src([
+          '!bower_components/{element-zones,element-zones/**}',
+          'bower_components/**/*.html'])
         .pipe(crisper()),
-      gulp.src(['!bower_components/{element-zones,element-zones/**}', '!bower_components/**/*.html', 'bower_components/**/*']))
+      gulp.src([
+          '!bower_components/{element-zones,element-zones/**}',
+          '!bower_components/**/*.html',
+          'bower_components/**/*']))
     .pipe(gulp.dest('build/polydev/bower_components'));
 });
