@@ -100,6 +100,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 <div class="header">Attached</div>
                 <div class="header">Detached</div>
                 <div class="header">Attributes</div>
+                <div class="header">Data</div>
               </div>
               <template is="dom-repeat" items="{{stats}}">
                 <div class="row">
@@ -110,6 +111,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                   <div class="cell" style$="{{_style(item, 'attached')}}">{{_num(item.attached)}}</div>
                   <div class="cell" style$="{{_style(item, 'detached')}}">{{_num(item.detached)}}</div>
                   <div class="cell" style$="{{_style(item, 'attributeChanged')}}">{{_num(item.attributeChanged)}}</div>
+                  <div class="cell" style$="{{_style(item, 'data')}}">{{_num(item.data)}}</div>
                 </div>
               </template>
             </div>
@@ -151,6 +153,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             created: 0,
             attached: 0,
             detached: 0,
+            data: 0,
             attributeChanged: 0,
           };
           this.maxCallbackTime = 0;
@@ -166,11 +169,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               detached: (tagData.detached) ? tagData.detached.totalTime : 0,
               attributeChanged: (tagData.attributeChanged) ?
                   tagData.attributeChanged.totalTime : 0,
+              data: (tagData.data) ? tagData.data.totalTime : 0,
             };
             tagStats.totalTime =
                 tagStats.created +
                 tagStats.attached +
                 tagStats.detached +
+                tagStats.data +
                 tagStats.attributeChanged;
             displayData.push(tagStats);
             this.maxCallbackTime = Math.max(this.maxCallbackTime, tagStats.created,
@@ -180,6 +185,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             allTagsStats.created += tagStats.created;
             allTagsStats.attached += tagStats.attached;
             allTagsStats.detached += tagStats.detached;
+            allTagsStats.data += tagStats.data;
             allTagsStats.attributeChanged += tagStats.attributeChanged;
           }
           displayData.sort((a, b) => b.totalTime - a.totalTime);
