@@ -48,7 +48,6 @@
     xhr.onload = function (e) {
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
-          console.log(`loaded ${localUrl}`);
           response = xhr.responseText;
         } else {
           console.error(xhr.statusText);
