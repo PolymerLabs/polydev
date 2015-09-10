@@ -10,9 +10,9 @@ custom elements.
 polydev must be built before running. The build step externalizes inline scripts
 for CSP compliance, and copies some dependencies into convenient locations.
 
-To build, run `gulp`:
+To build, run `npm run build`:
 
-    > gulp
+    > npm run build
 
 The built project is available at `build/polydev`.
 
