@@ -1,0 +1,37 @@
+{
+    "rules": {
+        "no-console": 0,
+        "no-unused-vars": [
+            2,
+            {"args": "none"}
+        ],
+        "comma-dangle": [
+            2,
+            "always-multiline"
+        ],
+        "indent": [
+            1,
+            2
+        ],
+        "quotes": [
+            2,
+            "single"
+        ],
+        "linebreak-style": [
+            2,
+            "unix"
+        ],
+        "semi": [
+            2,
+            "always"
+        ]
+    },
+    "env": {
+        "es6": true,
+        "browser": true
+    },
+    "globals": {
+        "chrome": true
+    },
+    "extends": "eslint:recommended"
+}

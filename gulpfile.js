@@ -3,8 +3,15 @@
 var crisper = require('gulp-crisper');
 let es = require('event-stream');
 let gulp = require('gulp');
+var eslint = require('gulp-eslint');
 
-gulp.task('default', ['manifest', 'src', 'bower', 'element-zones', 'zone.js']);
+gulp.task('default', ['manifest', 'lint', 'src', 'bower', 'element-zones', 'zone.js']);
+
+gulp.task('lint', function() {
+  return gulp.src('src/**/*.js')
+    .pipe(eslint())
+    .pipe(eslint.format());
+});
 
 gulp.task('manifest', function () {
   return gulp.src('manifest.json').pipe(gulp.dest('build/polydev/'));
