@@ -171,15 +171,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               attached: (tagData.attached) ? tagData.attached.totalTime : 0,
               detached: (tagData.detached) ? tagData.detached.totalTime : 0,
               attributeChanged: (tagData.attributeChanged) ?
-                  tagData.attributeChanged.totalTime : 0,
+                tagData.attributeChanged.totalTime : 0,
               data: (tagData.data) ? tagData.data.totalTime : 0,
             };
             tagStats.totalTime =
-                tagStats.created +
-                tagStats.attached +
-                tagStats.detached +
-                tagStats.data +
-                tagStats.attributeChanged;
+              tagStats.created +
+              tagStats.attached +
+              tagStats.detached +
+              tagStats.data +
+              tagStats.attributeChanged;
             displayData.push(tagStats);
             this.maxCallbackTime = Math.max(this.maxCallbackTime, tagStats.created,
                 tagStats.attached, tagStats.detached, tagStats.attributeChanged);
