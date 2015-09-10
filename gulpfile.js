@@ -13,6 +13,10 @@ gulp.task('lint', function() {
     .pipe(eslint.format());
 });
 
+gulp.task('dev', function() {
+  return gulp.watch(['src/**/*', 'bower_components/element-zones/**/*.js'], ['src']);
+});
+
 gulp.task('manifest', function () {
   return gulp.src('manifest.json').pipe(gulp.dest('build/polydev/'));
 });
