@@ -1,8 +1,8 @@
 'use strict';
 
 var crisper = require('gulp-crisper');
-let es = require('event-stream');
-let gulp = require('gulp');
+var es = require('event-stream');
+var gulp = require('gulp');
 var eslint = require('gulp-eslint');
 
 gulp.task('default', ['manifest', 'lint', 'src', 'bower', 'element-zones', 'zone.js']);
