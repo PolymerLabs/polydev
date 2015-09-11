@@ -9,6 +9,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../stats-item/stats-item.html">
 
 <dom-module id="stats-table">
   <template>
@@ -42,28 +43,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             border: solid 1px #aaa;
             position: relative;
           }
-          div.fill {
-            position: absolute;
-            height: 100%;
-            top: 0;
-            right: 0;
-          }
-          span.label {
-            position: relative;
-          }
-          div.header {
-            @apply(--paper-font-body1);
-            font-size: 10px;
-          }
           div.cell {
             text-align: right;
             @apply(--paper-font-code1);
             font-size: 10px;
           }
-          div.cell.total {
+          div.header {
+            @apply(--paper-font-body1);
+            font-size: 10px;
+          }
+          .total {
             font-weight: bold !important;
           }
-          div.cell.name {
+          .name {
             text-align: left;
             color: var(--paper-pink-700);
           }
@@ -71,30 +63,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <div class="row">
           <div class="cell name">{{item.tagName}}</div>
           <div class="cell">{{item.count}}</div>
-          <div class="cell total">
-            <div class="fill" style$="[[_style(item, 'totalTime', stats, allTagsStats)]]"></div>
-            <span class="label">[[_num(item.totalTime)]]</span>
-          </div>
-          <div class="cell">
-            <div class="fill" style$="[[_style(item, 'created', stats, allTagsStats)]]"></div>
-            <span class="label">[[_num(item.created)]]</span>
-          </div>
-          <div class="cell">
-            <div class="fill" style$="[[_style(item, 'attached', stats, allTagsStats)]]"></div>
-            <span class="label">[[_num(item.attached)]]</span>
-          </div>
-          <div class="cell">
-            <div class="fill" style$="[[_style(item, 'detached', stats, allTagsStats)]]"></div>
-            <span class="label">[[_num(item.detached)]]</span>
-          </div>
-          <div class="cell">
-            <div class="fill" style$="[[_style(item, 'attributeChanged', stats, allTagsStats)]]"></div>
-            <span class="label">[[_num(item.attributeChanged)]]</span>
-          </div>
-          <div class="cell">
-            <div class="fill" style$="[[_style(item, 'data', stats, allTagsStats)]]"></div>
-            <span class="label">[[_num(item.data)}}</span>
-          </div>
+          <stats-item item="[[item]]" metric="totalTime" stats="[[stats]]" all-tags-stats="[[allTagsStats]]" class="total"></stats-item>
+          <stats-item item="[[item]]" metric="created" stats="[[stats]]" all-tags-stats="[[allTagsStats]]"></stats-item>
+          <stats-item item="[[item]]" metric="attached" stats="[[stats]]" all-tags-stats="[[allTagsStats]]"></stats-item>
+          <stats-item item="[[item]]" metric="detached" stats="[[stats]]" all-tags-stats="[[allTagsStats]]"></stats-item>
+          <stats-item item="[[item]]" metric="attributeChanged" stats="[[stats]]" all-tags-stats="[[allTagsStats]]"></stats-item>
+          <stats-item item="[[item]]" metric="data" stats="[[stats]]" all-tags-stats="[[allTagsStats]]"></stats-item>
         </div>
       </template>
     </div>
@@ -103,55 +77,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <script>
     (function() {
       'use strict';
-      let precision = 2;
 
       Polymer({
         is: 'stats-table',
         properties: {
           stats: Array,
           allTagsStats: Object
-        },
-        _num(n) {
-          return (typeof n === 'number') ? n.toFixed(precision) : '';
-        },
-        _maxAcross(props, stats) {
-          return stats.reduce((prev, v) => {
-            let max = prev;
-
-            props.forEach((kv) => {
-              if (v[kv] > max) {
-                max = v[kv];
-              }
-            })
-
-            return max;
-          }, 0);
-        },
-        _style(item, property, stats, allTagsStats) {
-          if (item === allTagsStats) {
-            return '';
-          }
-
-          //todo: memoize
-          let maxAcross = this._maxAcross(
-              ['created', 'attached', 'detached', 'attributeChanged', 'data', 'totalTime'],
-              stats.filter((v) => v.tagName !== 'All Custom Elements'));
-          let percent = item[property] / maxAcross;
-          let alpha = Math.sqrt(percent);
-
-          if (property == 'totalTime') {
-            if (allTagsStats.totalTime == 0) {
-              return '';
-            }
-            return `background: rgba(244, 67, 54, ${alpha}); width: ${percent * 100}%`;
-          }
-
-          if (this.maxCallbackTime == 0) {
-            return '';
-          }
-          return `background: rgba(255, 152, 0, ${alpha}); width: ${percent * 100}%`;
         }
-          });
+      });
     })();
   </script>
 </dom-module>
