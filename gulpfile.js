@@ -33,9 +33,9 @@ gulp.task('element-zones', function() {
 
 gulp.task('src', function() {
   return es.merge(
-      gulp.src('src/*.html')
+      gulp.src('src/**/*.html')
         .pipe(crisper()),
-      gulp.src(['src/*', '!src/*.html']))
+      gulp.src(['src/**/*', '!src/**/*.html']))
     .pipe(gulp.dest('build/polydev/src'));
 });
 
