@@ -8,8 +8,6 @@
  * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
  */
 
-console.log("background page loaded!!!");
-
 var pagePorts = new Map();
 var polymerPanelPorts = new Map();
 
@@ -21,7 +19,9 @@ chrome.extension.onConnect.addListener(function(port) {
 
 		port.onMessage.addListener(function(message, port) {
 			console.log('from polymer-panel', message, port);
-			if (message.messageType && message.messageType == 'tab-id') {
+			if (!message.messageType) return;
+			var messageType = message.messageType;
+			if (messageType === 'tab-id') {
 				console.log('polymer-page tab-id', message.tabId);
 				// save the port to the polymer devtools panel
 				polymerPanelPorts.set(message.tabId, port);
@@ -30,12 +30,14 @@ chrome.extension.onConnect.addListener(function(port) {
 					messageType: 'handshake',
 				});
 
-			} else if (message.messageType && message.messageType == 'get-element-stats') {
+			} else if (messageType === 'get-element-stats' ||
+						messageType === 'clear-element-stats') {
+							console.log('messageType', messageType);
 				// relay to content script
 				var tabId = message.tabId;
 				var pagePort = pagePorts.get(tabId);
 				pagePort.postMessage({
-					messageType: 'get-element-stats',
+					messageType: messageType,
 				});
 			}
 		});

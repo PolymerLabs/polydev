@@ -25,7 +25,7 @@
   // Forward requests for element stats to the target page.
   backgroundPageConnection.onMessage.addListener(function(request, sender, sendResponse) {
     window.postMessage({
-      messageType: 'get-element-stats',
+      messageType: request.messageType,
     }, '*');
   });
 
