@@ -89,6 +89,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             <paper-button on-click="_getData">
               <iron-icon icon="refresh"></iron-icon> Refresh
             </paper-button>
+            <paper-button on-click="_clearData">
+              <iron-icon icon="clear"></iron-icon> Reset
+            </paper-button>
           </div>
           <template is="dom-if" if="{{stats}}">
             <div class="table">
@@ -207,6 +210,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     _getData() {
       this._backgroundPageConnection.postMessage({
         messageType: 'get-element-stats',
+        tabId: chrome.devtools.inspectedWindow.tabId,
+      });
+    },
+
+    _clearData() {
+      this._backgroundPageConnection.postMessage({
+        messageType: 'clear-element-stats',
         tabId: chrome.devtools.inspectedWindow.tabId,
       });
     },

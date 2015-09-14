@@ -11,6 +11,7 @@
     "bower_components"
   ],
   "dependencies": {
+    "element-zones": "PolymerLabs/element-zones#^0.2.0",
     "imd": "PolymerLabs/imd#export",
     "iron-icon": "PolymerElements/iron-icon#~1.0.4",
     "iron-icons": "PolymerElements/iron-icons#~1.0.3",
