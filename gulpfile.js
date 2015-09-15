@@ -1,8 +1,8 @@
 'use strict';
 
 var crisper = require('gulp-crisper');
-let es = require('event-stream');
-let gulp = require('gulp');
+var es = require('event-stream');
+var gulp = require('gulp');
 var eslint = require('gulp-eslint');
 
 gulp.task('default', ['manifest', 'lint', 'src', 'bower', 'element-zones', 'zone.js']);
@@ -11,6 +11,10 @@ gulp.task('lint', function() {
   return gulp.src('src/**/*.js')
     .pipe(eslint())
     .pipe(eslint.format());
+});
+
+gulp.task('dev', function() {
+  return gulp.watch(['src/**/*', 'bower_components/element-zones/**/*.js'], ['src']);
 });
 
 gulp.task('manifest', function () {

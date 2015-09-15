@@ -10,9 +10,9 @@ custom elements.
 polydev must be built before running. The build step externalizes inline scripts
 for CSP compliance, and copies some dependencies into convenient locations.
 
-To build, run `gulp`:
+To build, run `npm run build`:
 
-    > gulp
+    > npm run build
 
 The built project is available at `build/polydev`.
 
@@ -24,12 +24,13 @@ The built project is available at `build/polydev`.
  4. Click "Load unpacked extension..."
  5. Choose `/polydev/build/polydev`
 
-### Making Changes
+### Dev flow
 
-Because of the build step gulp must be run after changes. Depending on the
-change you can either then close and reopen the devtools, or if you've made a
-change to the content-script or to element-zones, you must reload both the
-extension and any page you're testing it on.
+When changing files in src/ the dev workflow should work cover most use cases.
+
+    > npm run dev
+
+Depending on the change you can either then close and reopen the devtools, or if you've made a change to the content-script or to element-zones, you must reload both the extension and any page you're testing it on.
 
 ### Working on element-zones
 

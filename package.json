@@ -2,6 +2,10 @@
   "name": "polydev",
   "version": "0.0.0",
   "private": true,
+  "scripts": {
+    "build": "gulp",
+    "dev": "gulp dev"
+  },
   "dependencies": {
     "zone.js": "^0.5.2"
   },
