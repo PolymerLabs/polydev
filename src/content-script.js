@@ -14,9 +14,14 @@
   let zoneJsScript = getFile('/vendor/zone-microtask.js');
   let elementZonesScript = getFile('/vendor/element-zones.js');
   let script = document.createElement('script');
+  let root = document.body || document.head || document.documentElement;
+
   script.appendChild(document.createTextNode(zoneJsScript));
+  root.appendChild(script);
+
+  script = document.createElement('script');
   script.appendChild(document.createTextNode(elementZonesScript));
-  (document.body || document.head || document.documentElement).appendChild(script);
+  root.appendChild(script);
 
   let backgroundPageConnection = chrome.runtime.connect({
     name: 'element-zones',
@@ -58,7 +63,7 @@
       console.error(xhr.statusText);
     };
     xhr.send(null);
-    return response;
+    return response + '\n\n//# sourceURL=polydev' + localUrl;
   }
 
 })();
