@@ -18,6 +18,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <link rel="import" href="../bower_components/paper-button/paper-button.html">
     <link rel="import" href="../bower_components/paper-material/paper-material.html">
     <link rel="import" href="../bower_components/paper-styles/paper-styles.html">
+    <link rel="import" href="elements/stats-table/stats-table.html">
     <style is="custom-style">
       body {
         background: var(--paper-grey-100);
@@ -35,38 +36,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       h1 {
         @apply(--paper-font-headline);
         flex: 1;
-      }
-      div.table {
-        display: table;
-        border-collapse: collapse;
-        margin: 8px 0;
-      }
-      div.row, div.header-row {
-        display: table-row;
-      }
-      div.row:hover {
-        background-color: var(--paper-blue-100);
-      }
-      div.header, div.cell {
-        display: table-cell;
-        padding: 4px 8px;
-        border: solid 1px #aaa;
-      }
-      div.header {
-        @apply(--paper-font-body1);
-        font-size: 10px;
-      }
-      div.cell {
-        text-align: right;
-        @apply(--paper-font-code1);
-        font-size: 10px;
-      }
-      div.cell.total {
-        font-weight: bold !important;
-      }
-      div.cell.name {
-        text-align: left;
-        color: var(--paper-pink-700);
       }
       paper-button.blue {
         color: var(--paper-light-blue-500);
@@ -94,38 +63,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             </paper-button>
           </div>
           <template is="dom-if" if="{{stats}}">
-            <div class="table">
-              <div class="header-row">
-                <div class="header">Tag Name</div>
-                <div class="header">Count</div>
-                <div class="header">Total Time</div>
-                <div class="header">Created</div>
-                <div class="header">Attached</div>
-                <div class="header">Detached</div>
-                <div class="header">Attributes</div>
-                <div class="header">Data</div>
-              </div>
-              <template is="dom-repeat" items="{{stats}}">
-                <div class="row">
-                  <div class="cell name">{{item.tagName}}</div>
-                  <div class="cell">{{item.count}}</div>
-                  <div class="cell total" style$="{{_style(item, 'totalTime')}}">{{_num(item.totalTime)}}</div>
-                  <div class="cell" style$="{{_style(item, 'created')}}">{{_num(item.created)}}</div>
-                  <div class="cell" style$="{{_style(item, 'attached')}}">{{_num(item.attached)}}</div>
-                  <div class="cell" style$="{{_style(item, 'detached')}}">{{_num(item.detached)}}</div>
-                  <div class="cell" style$="{{_style(item, 'attributeChanged')}}">{{_num(item.attributeChanged)}}</div>
-                  <div class="cell" style$="{{_style(item, 'data')}}">{{_num(item.data)}}</div>
-                </div>
-              </template>
-            </div>
+            <stats-table stats="[[stats]]" all-tags-stats="[[allTagsStats]]"></stats-table>
           </template>
         </paper-material>
       </template>
       <script>
 (function() {
   'use strict';
-
-  let precision = 2;
 
   Polymer({
     is: 'polymer-panel',
@@ -138,7 +82,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       allTagsStats: {
         type: Object,
       },
-
     },
 
     attached() {
@@ -207,13 +150,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       this._getData();
     },
 
-    _getData() {
-      this._backgroundPageConnection.postMessage({
-        messageType: 'get-element-stats',
-        tabId: chrome.devtools.inspectedWindow.tabId,
-      });
-    },
-
     _clearData() {
       this._backgroundPageConnection.postMessage({
         messageType: 'clear-element-stats',
@@ -221,31 +157,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       });
     },
 
-    _num(n) {
-      return (typeof n === 'number') ? n.toFixed(precision) : '';
-    },
-
-    _style(item, property) {
-      if (item === this.allTagsStats) {
-        return '';
-      }
-      if (property == 'totalTime') {
-        if (this.allTagsStats.totalTime == 0) {
-          return '';
-        }
-        let percent = item[property] / this.allTagsStats.totalTime;
-        let alpha = Math.sqrt(percent);
-        return `background: rgba(244, 67, 54, ${alpha})`;
-      } else {
-        if (this.maxCallbackTime == 0) {
-          return '';
-        }
-        let percent = item[property] / this.maxCallbackTime;
-        let alpha = Math.sqrt(percent);
-        return `background: rgba(255, 152, 0, ${alpha})`;
-      }
+    _getData() {
+      this._backgroundPageConnection.postMessage({
+        messageType: 'get-element-stats',
+        tabId: chrome.devtools.inspectedWindow.tabId,
+      });
     }
-
   });
 })();
       </script>

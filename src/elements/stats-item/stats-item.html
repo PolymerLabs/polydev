@@ -1,0 +1,86 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+
+<dom-module id="stats-item">
+  <template>
+    <style>
+      :host {
+        display: table-cell;
+        padding: 4px 8px;
+        border: solid 1px #aaa;
+        position: relative;
+      }
+      .fill {
+        position: absolute;
+        height: 100%;
+        top: 0;
+        right: 0;
+      }
+      .label {
+        position: relative;
+      }
+    </style>
+      <div class="fill" style$="[[_style(item, metric, stats, allTagsStats)]]"></div>
+      <span class="label">[[label]]</span>
+  </template>
+  <script>
+    (function() {
+      'use strict';
+
+      let precision = 2;
+      Polymer({
+        is: 'stats-item',
+        properties: {
+          item: Object,
+          metric: String,
+          stats: Array,
+          allTagsStats: Object,
+          label: {
+            type: String,
+            computed: '_num(item, metric)'
+          }
+        },
+        _num(item, metric) {
+          let n = item[metric];
+          return (typeof n === 'number') ? n.toFixed(precision) : '';
+        },
+        _maxAcross(props, stats) {
+          return stats.reduce((prev, v) => {
+            let max = prev;
+
+            props.forEach((kv) => {
+              if (v[kv] > max) {
+                max = v[kv];
+              }
+            });
+
+            return max;
+          }, 0);
+        },
+        _style(item, property, stats, allTagsStats) {
+          if (item === allTagsStats) {
+            return '';
+          }
+
+          //todo: memoize
+          let maxAcross = this._maxAcross(
+              ['created', 'attached', 'detached', 'attributeChanged', 'data', 'totalTime'],
+              stats.filter((v) => v.tagName !== 'All Custom Elements'));
+          let percent = item[property] / maxAcross;
+          let alpha = Math.sqrt(percent);
+
+          if (property == 'totalTime') {
+            if (allTagsStats.totalTime == 0) {
+              return '';
+            }
+            return `background: rgba(244, 67, 54, ${alpha}); width: ${percent * 100}%`;
+          }
+
+          if (this.maxCallbackTime == 0) {
+            return '';
+          }
+          return `background: rgba(255, 152, 0, ${alpha}); width: ${percent * 100}%`;
+        }
+      });
+    })();
+  </script>
+</dom-module>
