@@ -63,7 +63,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             </paper-button>
           </div>
           <template is="dom-if" if="{{stats}}">
-            <stats-table stats="[[stats]]" all-tags-stats="[[allTagsStats]]"></stats-table>
+            <stats-table
+                stats="[[stats]]"
+                all-tags-stats="[[allTagsStats]]"
+                show-register-column="[[showRegisterColumn]]"
+                >
+            </stats-table>
           </template>
         </paper-material>
       </template>
@@ -82,6 +87,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       allTagsStats: {
         type: Object,
       },
+
+      showRegisterColumn: Boolean,
     },
 
     attached() {
@@ -129,11 +136,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             displayData.push(tagStats);
             this.maxCallbackTime = Math.max(
                 this.maxCallbackTime,
-                tagStats.register,
                 tagStats.created,
                 tagStats.attached,
                 tagStats.detached,
                 tagStats.attributeChanged);
+            if (showRegisterColumn) {
+              this.maxCallbackTime = Math.max(
+                  this.maxCallbackTime,
+                  tagStats.register);
+            }
             allTagsStats.count += tagStats.count;
             allTagsStats.totalTime += tagStats.totalTime;
             allTagsStats.register += tagStats.register;
@@ -176,6 +187,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 })();
       </script>
     </dom-module>
-    <polymer-panel></polymer-panel>
+    <polymer-panel show-register-column="false"></polymer-panel>
   </body>
 </html>

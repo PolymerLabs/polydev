@@ -65,7 +65,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <div class="cell name">{{item.tagName}}</div>
           <div class="cell">{{item.count}}</div>
           <stats-item item="[[item]]" metric="totalTime" stats="[[stats]]" all-tags-stats="[[allTagsStats]]" class="total"></stats-item>
-          <stats-item item="[[item]]" metric="register" stats="[[stats]]" all-tags-stats="[[allTagsStats]]"></stats-item>
+          <template is="dom-if">
+            <stats-item item="[[item]]" metric="register" stats="[[stats]]" all-tags-stats="[[allTagsStats]]"></stats-item>
+          </template>
           <stats-item item="[[item]]" metric="created" stats="[[stats]]" all-tags-stats="[[allTagsStats]]"></stats-item>
           <stats-item item="[[item]]" metric="attached" stats="[[stats]]" all-tags-stats="[[allTagsStats]]"></stats-item>
           <stats-item item="[[item]]" metric="detached" stats="[[stats]]" all-tags-stats="[[allTagsStats]]"></stats-item>
