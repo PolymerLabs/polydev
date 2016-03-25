@@ -5,7 +5,8 @@
   "permissions": [
     "tabs",
     "http://*/*",
-    "https://*/*"
+    "https://*/*",
+    "webNavigation"
   ],
   "background": {
     "scripts": ["src/background.js"]

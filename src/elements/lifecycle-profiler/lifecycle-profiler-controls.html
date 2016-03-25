@@ -1,0 +1,82 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/paper-styles/color.html">
+<link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../../bower_components/iron-localstorage/iron-localstorage.html">
+<link rel="import" href="../../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../../bower_components/paper-input/paper-input.html">
+<dom-module id="lifecycle-profiler-controls">
+  <template>
+    <style>
+      :host {
+        @apply(--layout-horizontal);
+        @apply(--layout-center-center);
+      }
+
+      paper-input {
+        position: relative;
+        top: -4px;
+        margin-right: 1em;
+      }
+    </style>
+    <iron-localstorage
+      name="lifecycleProfilerState"
+      value="{{state}}"
+      on-iron-localstorage-load-empty="__initializeState">
+    </iron-localstorage>
+    <paper-input label="Tag filter" value="{{state.tagFilter}}"></paper-input>
+    <paper-icon-button id="refresh" icon="timeline"></paper-icon-button>
+  </template>
+  <script>
+    (function() {
+      Polymer({
+        is: 'lifecycle-profiler-controls',
+
+        properties: {
+          state: {
+            type: Object,
+            value: function() {
+              return {};
+            }
+          }
+        },
+
+        listeners: {
+          'refresh.tap': '__onRefreshTap'
+        },
+
+        observers: [
+          '__tagFilterChanged(state.tagFilter)'
+        ],
+
+        __onRefreshTap: function() {
+          console.log('refresh tap');
+          this.fire('request-data', null, { bubbles: true });
+        },
+
+        __initializeState: function() {
+          this.state = {};
+        },
+
+        __tagFilterChanged: function() {
+          this.debounce('tag-filter-changed', function() {
+            this.fire('background-message', {
+              messageType: 'filter-tags',
+              detail: this.state && this.state.tagFilter
+            }, { bubbles: true });
+          }, 750);
+        }
+      });
+    })();
+  </script>
+</dom-module>
+

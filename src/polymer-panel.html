@@ -17,55 +17,59 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
     <link rel="import" href="../bower_components/paper-button/paper-button.html">
     <link rel="import" href="../bower_components/paper-material/paper-material.html">
-    <link rel="import" href="../bower_components/paper-styles/paper-styles.html">
+    <link rel="import" href="../bower_components/paper-styles/color.html">
+    <link rel="import" href="../bower_components/paper-styles/shadow.html">
+    <link rel="import" href="../bower_components/paper-styles/typography.html">
+    <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
+    <link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
+    <link rel="import" href="../bower_components/paper-tabs/paper-tab.html">
     <link rel="import" href="elements/stats-table/stats-table.html">
+    <link rel="import" href="elements/lifecycle-profiler/lifecycle-profiler.html">
+    <link rel="import" href="elements/lifecycle-profiler/lifecycle-profiler-controls.html">
     <style is="custom-style">
       body {
         background: var(--paper-grey-100);
+        margin: 0;
+        padding: 0;
       }
     </style>
   </head>
   <body>
     <dom-module id="polymer-panel">
       <style>
-      div.title {
-        display: flex;
-        flex-direction: row;
-        align-items: baseline;
+      :host {
+        color: var(--paper-blue-grey-900);
+        --paper-input-container-color: var(--paper-blue-grey-300);
+        --paper-input-container-focus-color: var(--paper-blue-grey-100);
+        --paper-input-container-input-color: var(--paper-blue-grey-100);
       }
-      h1 {
-        @apply(--paper-font-headline);
-        flex: 1;
+      app-toolbar {
+        @apply(--shadow-elevation-4dp);
+        background-color: var(--paper-blue-grey-500);
+        color: var(--paper-blue-grey-100);
+        justify-content: space-between;
       }
-      paper-button.blue {
-        color: var(--paper-light-blue-500);
-        --paper-button-flat-focus-color: var(--paper-light-blue-50);
+      paper-tabs {
+        height: 64px;
       }
-      paper-button.blue:hover {
-        background: var(--paper-light-blue-50);
-      }
-      paper-material {
-        background: white;
-        margin: 32px;
-        padding: 8px 12px;
-        display: inline-block;
+
+      #tools {
+        display: block;
+        margin: 1em;
       }
       </style>
       <template>
-        <paper-material elevation="1">
-          <div class="title">
-            <h1>Custom Element Profile</h1>
-            <paper-button on-click="_getData">
-              <iron-icon icon="refresh"></iron-icon> Refresh
-            </paper-button>
-            <paper-button on-click="_clearData">
-              <iron-icon icon="clear"></iron-icon> Reset
-            </paper-button>
-          </div>
-          <template is="dom-if" if="{{stats}}">
-            <stats-table stats="[[stats]]" all-tags-stats="[[allTagsStats]]"></stats-table>
-          </template>
-        </paper-material>
+        <app-toolbar>
+          <paper-tabs selected="{{tab}}">
+            <paper-tab>Lifecycle Profiler</paper-tab>
+          </paper-tabs>
+          <iron-pages selected="[[tab]]">
+            <lifecycle-profiler-controls></lifecycle-profiler-controls>
+          </iron-pages>
+        </app-toolbar>
+        <iron-pages id="tools" selected="[[tab]]">
+          <lifecycle-profiler></lifecycle-profiler>
+        </iron-pages>
       </template>
       <script>
 (function() {
@@ -75,6 +79,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     is: 'polymer-panel',
 
     properties: {
+      tab: {
+        type: Number,
+        value: 0
+      },
+
       stats: {
         type: Array,
       },
@@ -84,60 +93,22 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
     },
 
+    listeners: {
+      'request-data': '_getData',
+      'background-message': '_sendBackgroundMessage'
+    },
+
+    get tools() {
+      return [].slice.call(Polymer.dom(this.$.tools).children);
+    },
+
     attached() {
       this._backgroundPageConnection = chrome.runtime.connect({
         name: 'polymer-panel',
       });
 
       this._backgroundPageConnection.onMessage.addListener((message, sender) => {
-        if (message.messageType && message.messageType === 'element-stats') {
-          let displayData = [];
-          let allTagsStats = {
-            tagName: 'All Custom Elements',
-            count: 0,
-            totalTime: 0,
-            created: 0,
-            attached: 0,
-            detached: 0,
-            data: 0,
-            attributeChanged: 0,
-          };
-          this.maxCallbackTime = 0;
-          displayData.push(allTagsStats);
-          for (let tag in message.data) {
-            let tagData = message.data[tag];
-            let tagStats = {
-              tagName: tag,
-              count: tagData.count,
-              totalTime: 0,
-              created: (tagData.created) ? tagData.created.totalTime : 0,
-              attached: (tagData.attached) ? tagData.attached.totalTime : 0,
-              detached: (tagData.detached) ? tagData.detached.totalTime : 0,
-              attributeChanged: (tagData.attributeChanged) ?
-                tagData.attributeChanged.totalTime : 0,
-              data: (tagData.data) ? tagData.data.totalTime : 0,
-            };
-            tagStats.totalTime =
-              tagStats.created +
-              tagStats.attached +
-              tagStats.detached +
-              tagStats.data +
-              tagStats.attributeChanged;
-            displayData.push(tagStats);
-            this.maxCallbackTime = Math.max(this.maxCallbackTime, tagStats.created,
-                tagStats.attached, tagStats.detached, tagStats.attributeChanged);
-            allTagsStats.count += tagStats.count;
-            allTagsStats.totalTime += tagStats.totalTime;
-            allTagsStats.created += tagStats.created;
-            allTagsStats.attached += tagStats.attached;
-            allTagsStats.detached += tagStats.detached;
-            allTagsStats.data += tagStats.data;
-            allTagsStats.attributeChanged += tagStats.attributeChanged;
-          }
-          displayData.sort((a, b) => b.totalTime - a.totalTime);
-          this.stats = displayData;
-          this.allTagsStats = allTagsStats;
-        }
+        this.tools.forEach((tool) => tool.handleMessage(message));
       });
 
       // Register with the background page so it can send us messages based on
@@ -146,8 +117,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         messageType: 'tab-id',
         tabId: chrome.devtools.inspectedWindow.tabId,
       });
-
-      this._getData();
+      console.log(chrome.devtools.inspectedWindow);
     },
 
     _clearData() {
@@ -158,10 +128,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     },
 
     _getData() {
+      console.log('getData');
       this._backgroundPageConnection.postMessage({
         messageType: 'get-element-stats',
         tabId: chrome.devtools.inspectedWindow.tabId,
       });
+    },
+
+    _sendBackgroundMessage(event) {
+      let data = {
+        messageType: event.detail.messageType,
+        tabId: chrome.devtools.inspectedWindow.tabId,
+        detail: event.detail.detail
+      };
+      console.log('sending background message', data);
+      this._backgroundPageConnection.postMessage(data);
     }
   });
 })();

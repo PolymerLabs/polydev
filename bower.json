@@ -11,12 +11,18 @@
     "bower_components"
   ],
   "dependencies": {
-    "element-zones": "PolymerLabs/element-zones#^0.2.0",
-    "imd": "PolymerLabs/imd#export",
-    "iron-icon": "PolymerElements/iron-icon#~1.0.4",
-    "iron-icons": "PolymerElements/iron-icons#~1.0.3",
-    "paper-button": "PolymerElements/paper-button#~1.0.4",
-    "paper-material": "PolymerElements/paper-material#~1.0.2"
+    "element-zones": "PolymerLabs/element-zones#master",
+    "imd": "PolymerLabs/imd#master",
+    "iron-icon": "polymerelements/iron-icon#^1.0.0",
+    "iron-icons": "PolymerElements/iron-icons#^1.0.3",
+    "paper-button": "PolymerElements/paper-button#^1.0.4",
+    "paper-material": "PolymerElements/paper-material#^1.0.2",
+    "paper-tabs": "polymerelements/paper-tabs#^1.0.0",
+    "app-layout": "polymerlabs/app-layout#~0.0.14",
+    "paper-icon-button": "polymerelements/paper-icon-button#^1.0.0",
+    "paper-input": "polymerelements/paper-input#^1.0.0",
+    "iron-localstorage": "polymerelements/iron-localstorage#^1.0.0",
+    "iron-pages": "polymerelements/iron-pages#^1.0.0"
   },
   "devDependencies": {
     "polymer": "Polymer/polymer#~1.1.1"

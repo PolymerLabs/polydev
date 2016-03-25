@@ -1,0 +1,185 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../../bower_components/paper-styles/color.html">
+<link rel="import" href="../../../bower_components/paper-styles/shadow.html">
+<link rel="import" href="../../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../stats-item/stats-item.html">
+<dom-module id="lifecycle-profiler">
+  <template>
+    <style>
+      :host {
+        display: inline-flex;
+        @apply(--layout-vertical);
+      }
+
+      #no-data {
+        text-align: center;
+        margin: 1em auto;
+        padding: 1em;
+        max-width: 640px;
+        color: var(--paper-blue-grey-200);
+      }
+
+      .stats {
+        background-color: #fff;
+        @apply(--shadow-elevation-2dp);
+      }
+
+      .row {
+        @apply(--layout-horizontal);
+        border-bottom: 1px solid var(--paper-grey-200);
+        box-sizing: border-box;
+      }
+
+      .cell {
+        padding: 1em;
+        box-sizing: border-box;
+        flex: 0 0 12.16666666%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-align: center;
+      }
+
+      .header {
+        font-weight: 200;
+        font-style: italic;
+      }
+
+      .count {
+        flex-basis: 7%;
+      }
+
+      .tag-name {
+        flex-basis: 20%;
+      }
+    </style>
+    <iron-pages selected="{{view}}">
+      <section id="no-data">
+        <h1>Click <iron-icon icon="timeline"></iron-icon> to collect lifecycle data!</h1>
+      </section>
+      <section>
+        <div class="header row">
+          <div class="cell tag-name">Tag Name</div>
+          <div class="cell count">Count</div>
+          <div class="cell total-time">Total Time</div>
+          <div class="cell created">Created</div>
+          <div class="cell attached">Attached</div>
+          <div class="cell detached">Detached</div>
+          <div class="cell attributes">Attributes</div>
+          <div class="cell data">Data</div>
+        </div>
+        <div class="stats">
+          <template is="dom-repeat" items="[[stats]]">
+            <div class="row">
+              <div class="cell tag-name">{{item.tagName}}</div>
+              <div class="cell count">{{item.count}}</div>
+              <stats-item class="cell total-time" item="[[item]]" metric="totalTime" stats="[[stats]]" all-tags-stats="[[allTagsStats]]"></stats-item>
+              <stats-item class="cell created" item="[[item]]" metric="created" stats="[[stats]]" all-tags-stats="[[allTagsStats]]"></stats-item>
+              <stats-item class="cell attached" item="[[item]]" metric="attached" stats="[[stats]]" all-tags-stats="[[allTagsStats]]"></stats-item>
+              <stats-item class="cell detached" item="[[item]]" metric="detached" stats="[[stats]]" all-tags-stats="[[allTagsStats]]"></stats-item>
+              <stats-item class="cell attributes" item="[[item]]" metric="attributeChanged" stats="[[stats]]" all-tags-stats="[[allTagsStats]]"></stats-item>
+              <stats-item class="cell data" item="[[item]]" metric="data" stats="[[stats]]" all-tags-stats="[[allTagsStats]]"></stats-item>
+            </div>
+          </template>
+        </div>
+      </section>
+    </iron-pages>
+  </template>
+  <script>
+    (function() {
+      Polymer({
+        is: 'lifecycle-profiler',
+
+        properties: {
+          stats: {
+            type: Object,
+            notify: true
+          },
+
+          allTagStats: {
+            type: Object,
+            notify: true
+          },
+
+          view: {
+            type: Number,
+            value: 0
+          }
+        },
+
+        handleMessage: function(message) {
+          console.log('MESSAGE', message.messageType);
+          switch (message.messageType) {
+            case 'handshake':
+            case 'tab-reloaded':
+              this.stats = [];
+              this.allTagStats = [];
+              this.view = 0;
+              break;
+            case 'element-stats':
+              let displayData = [];
+              let allTagsStats = {
+                tagName: 'All Custom Elements',
+                count: 0,
+                totalTime: 0,
+                created: 0,
+                attached: 0,
+                detached: 0,
+                data: 0,
+                attributeChanged: 0,
+              };
+              this.maxCallbackTime = 0;
+              displayData.push(allTagsStats);
+              for (let tag in message.data) {
+                let tagData = message.data[tag];
+                let tagStats = {
+                  tagName: tag,
+                  count: tagData.count,
+                  totalTime: 0,
+                  created: (tagData.created) ? tagData.created.totalTime : 0,
+                  attached: (tagData.attached) ? tagData.attached.totalTime : 0,
+                  detached: (tagData.detached) ? tagData.detached.totalTime : 0,
+                  attributeChanged: (tagData.attributeChanged) ?
+                    tagData.attributeChanged.totalTime : 0,
+                  data: (tagData.data) ? tagData.data.totalTime : 0,
+                };
+                tagStats.totalTime =
+                  tagStats.created +
+                  tagStats.attached +
+                  tagStats.detached +
+                  tagStats.data +
+                  tagStats.attributeChanged;
+                displayData.push(tagStats);
+                this.maxCallbackTime = Math.max(this.maxCallbackTime, tagStats.created,
+                    tagStats.attached, tagStats.detached, tagStats.attributeChanged);
+                allTagsStats.count += tagStats.count;
+                allTagsStats.totalTime += tagStats.totalTime;
+                allTagsStats.created += tagStats.created;
+                allTagsStats.attached += tagStats.attached;
+                allTagsStats.detached += tagStats.detached;
+                allTagsStats.data += tagStats.data;
+                allTagsStats.attributeChanged += tagStats.attributeChanged;
+              }
+              displayData.sort((a, b) => b.totalTime - a.totalTime);
+              this.stats = displayData;
+              this.allTagsStats = allTagsStats;
+              this.view = 1;
+              break;
+          }
+        }
+      });
+    })();
+  </script>
+</dom-module>

@@ -31,13 +31,15 @@
   backgroundPageConnection.onMessage.addListener(function(request, sender, sendResponse) {
     window.postMessage({
       messageType: request.messageType,
+      detail: request.detail,
     }, '*');
   });
 
   // Forward element-stats responses from the target page to the background page
   // to be further forwarded to the polymer-panel
   window.addEventListener('message', function(event) {
-    if (event.data.messageType == 'element-stats') {
+    if (event.data.messageType == 'element-stats' ||
+        event.data.messageType == 'element-stats-clear') {
       backgroundPageConnection.postMessage(event.data);
     }
   });

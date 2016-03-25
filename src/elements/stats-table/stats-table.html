@@ -26,6 +26,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </div>
       <template is="dom-repeat" items="[[stats]]">
         <style>
+          :host {
+            display: inline-flex;
+            background-color: #fff;
+            margin: 1em;
+            @apply(--shadow-elevation-2dp);
+          }
+
+          .row {
+            padding: 1em;
+          }
+
+          .row:not(:last-child) {
+            border-bottom: 1px solid var(--paper-grey-200);
+          }
+          /*
           div.table {
             display: table;
             border-collapse: collapse;
@@ -59,6 +74,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             text-align: left;
             color: var(--paper-pink-700);
           }
+          */
         </style>
         <div class="row">
           <div class="cell name">{{item.tagName}}</div>
