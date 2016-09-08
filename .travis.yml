@@ -1,0 +1,15 @@
+language: node_js
+node_js: stable
+addons:
+  apt:
+    sources:
+    - google-chrome
+    packages:
+    - google-chrome-stable
+before_script:
+- npm run init
+- npm run build
+script:
+- xvfb-run wct -l chrome
+dist: trusty
+sudo: required

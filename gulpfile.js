@@ -23,7 +23,8 @@ gulp.task('manifest', function() {
 gulp.task('compile', function(cb) {
   child_process.exec('tsc', function(err, stdout, stderr) {
     if (err) {
-      console.log(stderr);
+      console.error(stdout);
+      console.error(stderr);
     }
     cb(err);
   });
