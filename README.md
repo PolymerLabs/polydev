@@ -39,12 +39,3 @@ When changing files in src/ the dev workflow should work cover most use cases.
 Depending on the change you can either then close and reopen the devtools, or if
 you've made a change to the content-script or to element-zones, you must reload
 both the extension and any page you're testing it on.
-
-### Working on element-zones
-
-polydev uses the element-zones library to capture custom element stats. If you
-want to work on element-zones and see the results in polydev, then:
-
- 1. Run `bower link` in the element-zones directory
- 2. Run `bower link element-zones` in the polydev directory
- 3. Run `gulp` as normal

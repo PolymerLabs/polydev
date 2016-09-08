@@ -1,6 +1,6 @@
 {
   "name": "Polymer DevTools Extension",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Shows information about Polymer elements",
   "permissions": [
     "tabs",
@@ -19,8 +19,9 @@
   ],
   "devtools_page": "src/devtools.html",
   "web_accessible_resources": [
-    "vendor/zone-microtask.js",
-    "vendor/element-zones.js"
+    "src/document-context/measure-custom-elements.js",
+    "src/document-context/measure-custom-elements.js.map",
+    "src/document-context/measure-custom-elements.ts"
   ],
   "manifest_version": 2
 }

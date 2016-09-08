@@ -1,0 +1,197 @@
+<!--
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<!doctype html>
+<html>
+  <head>
+    <title>element-zones.js Test</title>
+    <meta charset="UTF-8">
+    <script src="../../bower_components/webcomponentsjs/webcomponents.js"></script>
+    <script src='../../src/document-context/measure-custom-elements.js'></script>
+    <script src='../../bower_components/web-component-tester/browser.js'></script>
+    <link rel="import" href="../../bower_components/polymer/polymer.html">
+  </head>
+  <body>
+    <script>
+
+      suite('measurements', function() {
+        var performance = window.performance;
+        if (!performance || !performance.mark || !performance.measure) {
+          test('can\'t do anything in browsers without performance.mark and measure');
+          return;
+        }
+        function clearMeasurements() {
+          performance.clearMarks();
+          performance.clearMeasures();
+        };
+        setup(function() {
+          clearMeasurements();
+        });
+
+        function testCanMeasureStandardCallbacks(tagName) {
+          test('measures creation', function() {
+            expect(window._getElementMeasures()).to.deep.equal([]);
+            document.createElement(tagName);
+            var measurements = window._getElementMeasures();
+            expect(measurements.length).to.deep.equal(1);
+            var measurement = measurements[0];
+            expect(measurement.tagName).to.equal(tagName);
+            expect(measurement.operation).to.equal('created');
+            expect(measurement.duration).to.be.at.least(0);
+          });
+          test('measures connecting', function() {
+            var element = document.createElement(tagName);
+            clearMeasurements();
+            document.body.appendChild(element);
+
+            function cleanup() {
+              element.parentElement.removeChild(element);;
+            }
+            // Under the polyfill, connected and disconnected callbacks
+            //   are asynchronous.
+            return Promise.resolve().then(function() {
+              var measurements = window._getElementMeasures();
+              expect(measurements.length).to.deep.equal(1);
+              var measurement = measurements[0];
+              expect(measurement.tagName).to.equal(tagName);
+              expect(measurement.operation).to.equal('connected');
+              expect(measurement.duration).to.be.at.least(0);
+            }).then(cleanup, function(err) {
+              cleanup();
+              throw err;
+            });
+          });
+          test('measures disconnecting', function() {
+            var element = document.createElement(tagName);
+            document.body.appendChild(element);
+            return Promise.resolve().then(function() {
+              clearMeasurements();
+              element.parentElement.removeChild(element);
+            }).then(function() {
+              var measurements = window._getElementMeasures();
+              expect(measurements.length).to.deep.equal(1);
+              var measurement = measurements[0];
+              expect(measurement.tagName).to.equal(tagName);
+              expect(measurement.operation).to.equal('disconnected');
+              expect(measurement.duration).to.be.at.least(0);
+            });
+          });
+
+          test('measures attributes changing', function() {
+            var element = document.createElement(tagName);
+            document.body.appendChild(element);
+            clearMeasurements();
+            element.setAttribute('prop', 'new value');
+
+            var measurements = window._getElementMeasures()
+                .filter(m => m.operation === 'attributeChanged');
+            expect(measurements.length).to.deep.equal(1);
+            var measurement = measurements[0];
+            expect(measurement.tagName).to.equal(tagName);
+            expect(measurement.operation).to.equal('attributeChanged');
+            expect(measurement.duration).to.be.at.least(0);
+
+            element.parentElement.removeChild(element);
+          });
+        }
+
+        if (document.registerElement) {
+          document.registerElement(
+              'minimal-vanilla-v0-element', {
+                  prototype: Object.create(HTMLElement.prototype)});
+
+          suite('can measure a vanilla v0 element', function() {
+            testCanMeasureStandardCallbacks('minimal-vanilla-v0-element');
+
+            test('measures registration', function() {
+              var tagName = 'registered-v0-element';
+              document.registerElement(
+                  tagName, {
+                      prototype: Object.create(HTMLElement.prototype)});
+
+              var measurements = window._getElementMeasures();
+              expect(measurements.length).to.deep.equal(1);
+              var measurement = measurements[0];
+              expect(measurement.tagName).to.equal(tagName);
+              expect(measurement.operation).to.equal('registered');
+              expect(measurement.duration).to.be.at.least(0);
+            });
+          });
+        }
+
+        if (window.customElements) {
+          class v1Elem extends HTMLElement {
+            static get observedAttributes() {
+              return ['prop'];
+            }
+          }
+          window.customElements.define('minimal-vanilla-v1-element', v1Elem);
+
+          suite('can measure a vanilla v1 element', function() {
+            testCanMeasureStandardCallbacks('minimal-vanilla-v1-element');
+
+            test('measures registration', function() {
+              var tagName = 'registered-v1-element';
+              window.customElements.define(
+                  tagName, class extends HTMLElement {});
+
+              var measurements = window._getElementMeasures();
+              expect(measurements.length).to.deep.equal(1);
+              var measurement = measurements[0];
+              expect(measurement.tagName).to.equal(tagName);
+              expect(measurement.operation).to.equal('registered');
+              expect(measurement.duration).to.be.at.least(0);
+            });
+          });
+        }
+
+        if (window.Polymer) {
+          Polymer({
+            is: 'minimal-polymer-element',
+            properties: {
+              prop: {
+                type: String,
+                notify: true
+              }
+            }
+          });
+          suite('can measure a Polymer element', function() {
+            testCanMeasureStandardCallbacks('minimal-polymer-element');
+
+            test('measures registration', function() {
+              var tagName = 'registered-polymer-element';
+              Polymer({is: tagName});
+
+              var measurements = window._getElementMeasures();
+              expect(measurements.length).to.deep.equal(1);
+              var measurement = measurements[0];
+              expect(measurement.tagName).to.equal(tagName);
+              expect(measurement.operation).to.equal('registered');
+              expect(measurement.duration).to.be.at.least(0);
+            });
+
+            test('measures time involved in setting a property', function() {
+              const tagName = 'minimal-polymer-element';
+              var element = document.createElement(tagName);
+              clearMeasurements();
+              element.prop = 'new value';
+
+              var measurements = window._getElementMeasures();
+              expect(measurements.length).to.deep.equal(1);
+              var measurement = measurements[0];
+              expect(measurement.tagName).to.equal(tagName);
+              expect(measurement.operation).to.equal('data');
+              expect(measurement.duration).to.be.at.least(0);
+            });
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
