@@ -9,16 +9,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <!doctype html>
 <html>
-  <head>
-    <title>element-zones.js Test</title>
-    <meta charset="UTF-8">
-    <script src="../../bower_components/webcomponentsjs/webcomponents.js"></script>
-    <script src='../../src/document-context/measure-custom-elements.js'></script>
-    <script src='../../bower_components/web-component-tester/browser.js'></script>
-    <link rel="import" href="../../bower_components/polymer/polymer.html">
-  </head>
-  <body>
-    <script>
+
+<head>
+  <title>element-zones.js Test</title>
+  <meta charset="UTF-8">
+  <script src="../../bower_components/webcomponentsjs/webcomponents.js"></script>
+  <script src='../../src/document-context/measure-custom-elements.js'></script>
+  <script src='../../bower_components/web-component-tester/browser.js'></script>
+  <link rel="import" href="../../bower_components/polymer/polymer.html">
+</head>
+
+<body>
+  <script>
 
       suite('measurements', function() {
         var performance = window.performance;
@@ -190,8 +192,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               expect(measurement.duration).to.be.at.least(0);
             });
           });
+
+          // TODO(rictic): test measurment of data binding for Polymer 2.0
+          //     elements.
         }
       });
     </script>
-  </body>
+</body>
+
 </html>

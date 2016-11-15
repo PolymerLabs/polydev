@@ -222,6 +222,13 @@ interface Console {
               'attributeChanged', tagName, this[idSymbol],
               attributeChangedCallback);
         }
+
+        _propertySetter() {
+          const propertyChangedCallback =
+              super['_propertySetter'] || (() => null);
+          makeMeasurement(
+              'data', tagName, this[idSymbol], propertyChangedCallback);
+        }
       }
 
       return makeMeasurement(
