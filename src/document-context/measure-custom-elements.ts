@@ -59,7 +59,7 @@ interface CustomElementsRegistry {
 }
 
 interface CustomElementV1Constructor {
-  new (): V1CustomElement;
+  new (...args: any[]): V1CustomElement;
 }
 
 interface V1CustomElement extends HTMLElement {
@@ -77,8 +77,8 @@ interface ElementMeasurement {
   end: number;
 }
 
-type CallbackName = 'register' | 'created' | 'attached' | 'detached' |
-    'attributeChanged' | 'data';
+type CallbackName =
+    'register'|'created'|'attached'|'detached'|'attributeChanged'|'data';
 
 interface Console {
   timeStamp(label: string): void;
@@ -93,7 +93,7 @@ interface Console {
     return;
   }
 
-  const prefix = '🐰💫 ';
+  const prefix = '[WC] ';
 
   function makeMeasurement<R>(
       operation: string, tagName: string, counter: number | null,
@@ -103,8 +103,7 @@ interface Console {
     const endMark = `${prefix}end ${operation} ${tagName}${counterSuffix}`;
     const measure = `${prefix}${operation} ${tagName}${counterSuffix}`;
 
-    window.performance.mark(
-        `${prefix}start ${operation} ${tagName}${counterSuffix}`);
+    window.performance.mark(startMark);
     try {
       return cb();
     } finally {
@@ -129,7 +128,11 @@ interface Console {
       let elementCounter = 0;
       const originalCreate = proto.createdCallback || (() => undefined);
 
-      function wrap(name: string, fullName: string) {
+      /**
+       * @param name Shorthand for the CE callback.
+       * @param fullName The property name of the CE callback.
+       */
+      function wrapCustomElementCallback(name: string, fullName: string) {
         const original = proto[fullName] || (() => undefined);
         proto[fullName] = function(this: any) {
           const counter: number = this[idSymbol];
@@ -161,9 +164,9 @@ interface Console {
 
         return result;
       };
-      wrap('connected', 'attachedCallback');
-      wrap('disconnected', 'detachedCallback');
-      wrap('attributeChanged', 'attributeChangedCallback');
+      wrapCustomElementCallback('connected', 'attachedCallback');
+      wrapCustomElementCallback('disconnected', 'detachedCallback');
+      wrapCustomElementCallback('attributeChanged', 'attributeChangedCallback');
 
       return makeMeasurement(
           'registered', tagName, null,
@@ -183,7 +186,7 @@ interface Console {
         constructor: CustomElementV1Constructor): CustomElementV1Constructor {
       let wrappedConstructor: CustomElementV1Constructor =
           class extends constructor {
-        constructor() {
+        constructor(...args: any[]) {
           const counter = elementCounter++;
           const startMark = `${prefix}start created ${tagName} ${counter}`;
           const endMark = `${prefix}end created ${tagName} ${counter}`;
@@ -191,7 +194,7 @@ interface Console {
 
           window.performance.mark(startMark);
           try {
-            super();
+            super(...args);
           } finally {
             window.performance.mark(endMark);
             window.performance.measure(measure, startMark, endMark);
@@ -233,7 +236,7 @@ interface Console {
   // Polymer-specific patching
   //
 
-  let _Polymer: (PolymerSubset | undefined);
+  let _Polymer: (PolymerSubset|undefined);
   let _PolymerCalled = false;
   let _PolymerWrapper: PolymerSubset = function(this: {}) {
     if (!_PolymerCalled) {
@@ -266,7 +269,7 @@ interface Console {
       ElementMeasurement[] {
         const rawMeasures: PerformanceEntry[] =
             window.performance.getEntriesByType('measure');
-        return rawMeasures.filter(m => m.name.startsWith('🐰💫 ')).map((m) => {
+        return rawMeasures.filter(m => m.name.startsWith(prefix)).map((m) => {
           const [, operation, tagName, elementId] = m.name.split(' ');
           return {
             tagName,
@@ -379,4 +382,4 @@ interface Console {
   });
 })();
 
-performance.clearMarks()
+performance.clearMarks();

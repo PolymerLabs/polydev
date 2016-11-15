@@ -1,6 +1,6 @@
 {
   "name": "Polymer DevTools Extension",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Shows information about Polymer elements",
   "permissions": [
     "tabs",
@@ -8,12 +8,21 @@
     "https://*/*"
   ],
   "background": {
-    "scripts": ["src/background.js"]
+    "scripts": [
+      "src/background.js"
+    ]
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>", "*://*/*", "http://*/*", "https://*/*"],
-      "js": ["src/content-script.js"],
+      "matches": [
+        "<all_urls>",
+        "*://*/*",
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "src/content-script.js"
+      ],
       "run_at": "document_start"
     }
   ],
