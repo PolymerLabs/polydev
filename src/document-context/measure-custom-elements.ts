@@ -146,27 +146,15 @@ interface Console {
         const counter = elementCounter++;
         this[idSymbol] = counter
 
-        const result = makeMeasurement(
+        return makeMeasurement(
             'created', tagName, counter, () => originalCreate.apply(this));
-
-        const originalPropertySetter = this._propertySetter;
-        this._propertySetter = function(this: any) {
-          return makeMeasurement(
-              'data', tagName, counter,
-              () => originalPropertySetter.apply(this, arguments));
-        };
-        const originalNotifyPath = this.notifyPath;
-        this.notifyPath = function(this: any) {
-          return makeMeasurement(
-              'data', tagName, counter,
-              () => originalNotifyPath.apply(this, arguments));
-        };
-
-        return result;
       };
+
       wrapCustomElementCallback('connected', 'attachedCallback');
       wrapCustomElementCallback('disconnected', 'detachedCallback');
       wrapCustomElementCallback('attributeChanged', 'attributeChangedCallback');
+      wrapCustomElementCallback('data', '_propertySetter');
+      wrapCustomElementCallback('data', 'notifyPath');
 
       return makeMeasurement(
           'registered', tagName, null,
