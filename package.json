@@ -6,7 +6,7 @@
     "init": "bower install",
     "build": "gulp",
     "dev": "gulp dev",
-    "test": "wct"
+    "test": "gulp && wct"
   },
   "dependencies": {},
   "devDependencies": {
