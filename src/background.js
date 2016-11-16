@@ -21,7 +21,6 @@ const polymerPanelPorts = new Map();
 // script connections
 chrome.extension.onConnect.addListener((port) => {
   if (port.name == 'polymer-panel') {
-
     port.onMessage.addListener((message, port) => {
       if (!message.messageType) {
         return;
@@ -53,7 +52,6 @@ chrome.extension.onConnect.addListener((port) => {
     port.onMessage.addListener((message, port) => {
       if (message.messageType == 'element-stats') {
         // post to devtools panel
-        const tabId = port.sender.tab.id;
         const polymerPanelPort = polymerPanelPorts.get(port.sender.tab.id);
         console.assert(polymerPanelPort != null);
         polymerPanelPort.postMessage({
