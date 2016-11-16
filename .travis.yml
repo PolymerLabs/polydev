@@ -1,6 +1,7 @@
 language: node_js
 node_js: stable
 addons:
+  firefox: latest
   apt:
     sources:
     - google-chrome
@@ -10,6 +11,6 @@ before_script:
 - npm run init
 - npm run build
 script:
-- xvfb-run wct -l chrome
+- xvfb-run wct -l chrome -l firefox
 dist: trusty
 sudo: required
