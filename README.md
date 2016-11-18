@@ -1,13 +1,36 @@
 # polydev
 
 polydev is the Polymer DevTools Extension - a tool to help develop Polymer and
-custom elements.
+custom elements. Currently it's focused on performance tracking of web components.
 
-## Release Installation
+## How to Use
 
-The release version of polydev is available on the Chrome Web Store:
+  1. [Install the extension](https://chrome.google.com/webstore/detail/polymer-devtools-extensio/mmpfaamodhhlbadloaibpocmcomledcg).
+  2. On a page that uses web components, [make a timeline recording](https://developers.google.com/web/tools/chrome-devtools/evaluate-performance/timeline-tool#make_a_recording).
+  3. Look under the User Timing section of the timeline to track time spent in custom element lifecycle callbacks, as well as time spent reacting to Polymer databinding changes.
 
-https://chrome.google.com/webstore/detail/polymer-devtools-extensio/mmpfaamodhhlbadloaibpocmcomledcg
+### How to read the results
+
+![Screenshot of a recorded timeline](./screenshot.png)
+
+Each web component lifecycle callback will be annotated as a span in the timeline called a [`measure`](https://www.html5rocks.com/en/tutorials/webperformance/usertiming/), representing the time that it took. If a measure is below another measure, the lower callback took place during the higher callback.
+
+Each measure that polydev produces has a unique name like `[WC] created paper-icon-button 5`. The format is `[WC] callbackName tagName id`. The id numbers are on a per instance and per tag basis and count up from zero.
+
+### API
+
+polydev exposes a method on the host page called _getElementMeasures. It returns an array of ElementMeasure objects, which obey the following interface:
+
+```typescript
+interface ElementMeasurement {
+  tagName: string;
+  operation: string;
+  elementId: number|undefined;
+  duration: number;
+  start: number;
+  end: number;
+}
+```
 
 ## Development
 
@@ -28,7 +51,7 @@ The built project is available at `build/polydev`.
  2. Navigate to chrome://extensions
  3. Check the "Developer mode" checkbox
  4. Click "Load unpacked extension..."
- 5. Choose `/polydev/build/polydev`
+ 5. Choose `polydev/build/polydev`
 
 ### Dev flow
 
