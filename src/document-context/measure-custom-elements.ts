@@ -49,23 +49,20 @@ interface Window {
   _printElementStats(): void;
   _getElementMeasures(): ElementMeasurement[];
   _summarizeRange(start: number, end: number): void;
-
-  customElements?: CustomElementsRegistry;
-}
-
-interface CustomElementsRegistry {
-  define(tagName: string, constructor: CustomElementV1Constructor):
-      CustomElementV1Constructor;
 }
 
 interface CustomElementV1Constructor {
-  new (...args: any[]): V1CustomElement;
+  new(...args: any[]): V1CustomElement;
+  prototype: V1CustomElement;
 }
 
 interface V1CustomElement extends HTMLElement {
   connectedCallback?(): void;
   disconnectedCallback?(): void;
   attributeChangedCallback?(): void;
+
+  _propertySetter?(...args: any[]): void;
+  notifyPath?(...args: any[]): void;
 }
 
 interface ElementMeasurement {
@@ -77,8 +74,12 @@ interface ElementMeasurement {
   end: number;
 }
 
-type CallbackName =
-    'register'|'created'|'attached'|'detached'|'attributeChanged'|'data';
+type CallbackShorthand =
+    'registered'|'created'|'connected'|'disconnected'|'attributeChanged'|'data';
+type Ce0CallbackName = 'attachedCallback'|'detachedCallback'|
+    'attributeChangedCallback'|'_propertySetter'|'notifyPath';
+type Ce1CallbackName = 'connectedCallback'|'disconnectedCallback'|
+    'attributeChangedCallback'|'_propertySetter'|'notifyPath';
 
 interface Console {
   timeStamp(label: string): void;
@@ -96,7 +97,7 @@ interface Console {
   const prefix = '[WC] ';
 
   function makeMeasurement<R>(
-      operation: string, tagName: string, counter: number | null,
+      operation: CallbackShorthand, tagName: string, counter: number | null,
       cb: () => R): R {
     const counterSuffix = counter == null ? '' : ` ${counter}`;
     const startMark = `${prefix}start ${operation} ${tagName}${counterSuffix}`;
@@ -132,7 +133,8 @@ interface Console {
        * @param name Shorthand for the CE callback.
        * @param fullName The property name of the CE callback.
        */
-      function wrapCustomElementCallback(name: string, fullName: string) {
+      function wrapCustomElementCallback(
+          name: CallbackShorthand, fullName: Ce0CallbackName) {
         const original = proto[fullName] || (() => undefined);
         proto[fullName] = function(this: any) {
           const counter: number = this[idSymbol];
@@ -167,61 +169,42 @@ interface Console {
     const originalDefine = window.customElements.define;
     const boundDefine: typeof originalDefine =
         originalDefine.bind(window.customElements);
-    let elementCounter = 0;
 
-    function wrappedDefineElement(
-        tagName: string,
-        constructor: CustomElementV1Constructor): CustomElementV1Constructor {
-      let wrappedConstructor: CustomElementV1Constructor =
-          class extends constructor {
-        constructor(...args: any[]) {
-          const counter = elementCounter++;
-          const startMark = `${prefix}start created ${tagName} ${counter}`;
-          const endMark = `${prefix}end created ${tagName} ${counter}`;
-          const measure = `${prefix}created ${tagName} ${counter}`;
-
-          window.performance.mark(startMark);
-          try {
-            super(...args);
-          } finally {
-            window.performance.mark(endMark);
-            window.performance.measure(measure, startMark, endMark);
-          }
-          this[idSymbol] = counter;
-        }
-
-        connectedCallback() {
-          const connectedCallback = super.connectedCallback || (() => null);
-          makeMeasurement(
-              'connected', tagName, this[idSymbol], connectedCallback);
-        }
-
-        disconnectedCallback() {
-          const disconnectedCallback =
-              super.disconnectedCallback || (() => null);
-          makeMeasurement(
-              'disconnected', tagName, this[idSymbol], disconnectedCallback);
-        }
-
-        attributeChangedCallback() {
-          const attributeChangedCallback =
-              super.attributeChangedCallback || (() => null);
-          makeMeasurement(
-              'attributeChanged', tagName, this[idSymbol],
-              attributeChangedCallback);
-        }
-
-        _propertySetter() {
-          const propertyChangedCallback =
-              super['_propertySetter'] || (() => null);
-          makeMeasurement(
-              'data', tagName, this[idSymbol], propertyChangedCallback);
-        }
+    const counterMap = new Map<string, number>();
+    window['HTMLElement'] = class extends HTMLElement {
+      constructor() {
+        super();
+        const tagName = this.tagName.toLowerCase();
+        let counter = counterMap.get(tagName) || 0;
+        this[idSymbol] = counter;
+        counterMap.set(tagName, counter + 1);
       }
+    };
+    function wrappedDefineElement(
+        tagName: string, constructor: CustomElementV1Constructor): void {
+      let proto = constructor.prototype;
+      function wrapCustomElementCallback(
+          name: CallbackShorthand, fullName: Ce1CallbackName) {
+        const original = proto[fullName];
+        if (!original) {
+          return;
+        }
+        proto[fullName] = function(this: any) {
+          const counter: number = this[idSymbol];
+
+          return makeMeasurement(
+              name, tagName, counter, () => original.apply(this, arguments));
+        };
+      }
+      wrapCustomElementCallback('connected', 'connectedCallback');
+      wrapCustomElementCallback('disconnected', 'disconnectedCallback');
+      wrapCustomElementCallback('attributeChanged', 'attributeChangedCallback');
+      wrapCustomElementCallback('data', '_propertySetter');
+      wrapCustomElementCallback('data', 'notifyPath');
+      counterMap.set(tagName.toLowerCase(), 0);
 
       return makeMeasurement(
-          'registered', tagName, null,
-          () => boundDefine(tagName, wrappedConstructor));
+          'registered', tagName, null, () => boundDefine(tagName, constructor));
     }
 
     window.customElements.define = wrappedDefineElement;

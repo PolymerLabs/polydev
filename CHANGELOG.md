@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 <!-- New PRs should document their changes here. -->
 
+* Fix measurement of v1 Custom Elements. Had to drop support for measuring v1 element creation, at least for the moment.
+
 ## [0.0.7] - 2016-11-17
 
 * Redesigned polydev around minimally patching custom element APIs and exposing the timings via the [user timing APIs](https://www.html5rocks.com/en/tutorials/webperformance/usertiming/).
