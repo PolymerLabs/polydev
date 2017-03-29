@@ -1,0 +1,14 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<script>
+  var timesWrapperIsCalled = 0;
+  (function (rawPolymer) {
+    window.Polymer = function (webComponent) {
+      timesWrapperIsCalled++;
+      return rawPolymer(webComponent)
+    }
+    for (var key in rawPolymer)
+      window.Polymer[key] = rawPolymer[key]
+  })(window.Polymer);
+
+</script>

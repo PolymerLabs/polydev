@@ -5,12 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-<!--## Unreleased-->
+## Unreleased
 
 <!--
   New PRs should document their changes here, uncommenting the Unreleased
   header as necessary.
 -->
+
+* Made the wrapping of the Polymer function more robust against code that subsequently also wraps the Polymer function.
 
 ## [0.0.8] - 2016-03-23
 

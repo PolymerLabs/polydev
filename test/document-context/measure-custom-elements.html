@@ -21,279 +21,279 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <body>
   <script>
+    suite('measurements', function () {
+      var performance = window.performance;
+      if (!performance || !performance.mark || !performance.measure) {
+        test('can\'t do anything in browsers without performance.mark and measure');
+        return;
+      }
+      function clearMeasurements() {
+        performance.clearMarks();
+        performance.clearMeasures();
+      };
+      setup(function () {
+        clearMeasurements();
+      });
 
-      suite('measurements', function() {
-        var performance = window.performance;
-        if (!performance || !performance.mark || !performance.measure) {
-          test('can\'t do anything in browsers without performance.mark and measure');
-          return;
-        }
-        function clearMeasurements() {
-          performance.clearMarks();
-          performance.clearMeasures();
-        };
-        setup(function() {
+      function testCanMeasureStandardCallbacks(tagName) {
+        test('measures connecting', function () {
+          var element = document.createElement(tagName);
           clearMeasurements();
-        });
+          document.body.appendChild(element);
 
-        function testCanMeasureStandardCallbacks(tagName) {
-          test('measures connecting', function() {
-            var element = document.createElement(tagName);
-            clearMeasurements();
-            document.body.appendChild(element);
-
-            function cleanup() {
-              element.parentElement.removeChild(element);;
-            }
-            // Under the polyfill, connected and disconnected callbacks
-            //   are asynchronous.
-            return Promise.resolve().then(function() {
-              var measurements = window._getElementMeasures();
-              expect(measurements.length).to.deep.equal(1);
-              var measurement = measurements[0];
-              expect(measurement.tagName).to.equal(tagName);
-              expect(measurement.operation).to.equal('connected');
-              expect(measurement.duration).to.be.at.least(0);
-            }).then(cleanup, function(err) {
-              cleanup();
-              throw err;
-            });
-          });
-          test('measures disconnecting', function() {
-            var element = document.createElement(tagName);
-            document.body.appendChild(element);
-            return Promise.resolve().then(function() {
-              clearMeasurements();
-              element.parentElement.removeChild(element);
-            }).then(function() {
-              var measurements = window._getElementMeasures();
-              expect(measurements.length).to.deep.equal(1);
-              var measurement = measurements[0];
-              expect(measurement.tagName).to.equal(tagName);
-              expect(measurement.operation).to.equal('disconnected');
-              expect(measurement.duration).to.be.at.least(0);
-            });
-          });
-
-          test('measures attributes changing', function() {
-            var element = document.createElement(tagName);
-            document.body.appendChild(element);
-            clearMeasurements();
-            element.setAttribute('prop', 'new value');
-
-            var measurements = window._getElementMeasures()
-                .filter(m => m.operation === 'attributeChanged');
+          function cleanup() {
+            element.parentElement.removeChild(element);;
+          }
+          // Under the polyfill, connected and disconnected callbacks
+          //   are asynchronous.
+          return Promise.resolve().then(function () {
+            var measurements = window._getElementMeasures();
             expect(measurements.length).to.deep.equal(1);
             var measurement = measurements[0];
             expect(measurement.tagName).to.equal(tagName);
-            expect(measurement.operation).to.equal('attributeChanged');
+            expect(measurement.operation).to.equal('connected');
             expect(measurement.duration).to.be.at.least(0);
-
+          }).then(cleanup, function (err) {
+            cleanup();
+            throw err;
+          });
+        });
+        test('measures disconnecting', function () {
+          var element = document.createElement(tagName);
+          document.body.appendChild(element);
+          return Promise.resolve().then(function () {
+            clearMeasurements();
             element.parentElement.removeChild(element);
+          }).then(function () {
+            var measurements = window._getElementMeasures();
+            expect(measurements.length).to.deep.equal(1);
+            var measurement = measurements[0];
+            expect(measurement.tagName).to.equal(tagName);
+            expect(measurement.operation).to.equal('disconnected');
+            expect(measurement.duration).to.be.at.least(0);
           });
-        }
+        });
 
-        if (document.registerElement) {
-          var tagName = 'minimal-vanilla-v0-element';
-          document.registerElement(
-              tagName, {prototype: Object.create(HTMLElement.prototype)});
+        test('measures attributes changing', function () {
+          var element = document.createElement(tagName);
+          document.body.appendChild(element);
+          clearMeasurements();
+          element.setAttribute('prop', 'new value');
 
-          suite('can measure a vanilla v0 element', function() {
-            testCanMeasureStandardCallbacks(tagName);
+          var measurements = window._getElementMeasures()
+            .filter(m => m.operation === 'attributeChanged');
+          expect(measurements.length).to.deep.equal(1);
+          var measurement = measurements[0];
+          expect(measurement.tagName).to.equal(tagName);
+          expect(measurement.operation).to.equal('attributeChanged');
+          expect(measurement.duration).to.be.at.least(0);
 
-            test('measures creation', function() {
-              expect(window._getElementMeasures()).to.deep.equal([]);
-              document.createElement(tagName);
-              var measurements = window._getElementMeasures();
-              expect(measurements.length).to.deep.equal(1);
-              var measurement = measurements[0];
-              expect(measurement.tagName).to.equal(tagName);
-              expect(measurement.operation).to.equal('created');
-              expect(measurement.duration).to.be.at.least(0);
-            });
+          element.parentElement.removeChild(element);
+        });
+      }
 
-            test('measures registration', function() {
-              var tagName = 'registered-v0-element';
-              document.registerElement(
-                  tagName, {
-                      prototype: Object.create(HTMLElement.prototype)});
+      if (document.registerElement) {
+        var tagName = 'minimal-vanilla-v0-element';
+        document.registerElement(
+          tagName, { prototype: Object.create(HTMLElement.prototype) });
 
-              var measurements = window._getElementMeasures();
-              expect(measurements.length).to.deep.equal(1);
-              var measurement = measurements[0];
-              expect(measurement.tagName).to.equal(tagName);
-              expect(measurement.operation).to.equal('registered');
-              expect(measurement.duration).to.be.at.least(0);
-            });
-          });
-        }
+        suite('can measure a vanilla v0 element', function () {
+          testCanMeasureStandardCallbacks(tagName);
 
-        if (window.customElements) {
-          class v1Elem extends HTMLElement {
-            static get observedAttributes() {
-              return ['prop'];
-            }
-            connectedCallback() {}
-            disconnectedCallback() {}
-            attributeChangedCallback() {}
-          }
-          window.customElements.define(
-              'all-callbacks-vanilla-v1-element', v1Elem);
-
-          suite('can measure a vanilla v1 element', function() {
-            testCanMeasureStandardCallbacks('all-callbacks-vanilla-v1-element');
-
-            test('measures registration', function() {
-              var tagName = 'registered-v1-element';
-              window.customElements.define(
-                  tagName, class extends HTMLElement {});
-
-              var measurements = window._getElementMeasures();
-              expect(measurements.length).to.deep.equal(1);
-              var measurement = measurements[0];
-              expect(measurement.tagName).to.equal(tagName);
-              expect(measurement.operation).to.equal('registered');
-              expect(measurement.duration).to.be.at.least(0);
-            });
+          test('measures creation', function () {
+            expect(window._getElementMeasures()).to.deep.equal([]);
+            document.createElement(tagName);
+            var measurements = window._getElementMeasures();
+            expect(measurements.length).to.deep.equal(1);
+            var measurement = measurements[0];
+            expect(measurement.tagName).to.equal(tagName);
+            expect(measurement.operation).to.equal('created');
+            expect(measurement.duration).to.be.at.least(0);
           });
 
-          test('doesn\'t measure callbacks that aren\'t there', function() {
-            var tagName = 'minimal-v1-element';
-            class Minimal extends HTMLElement {
-              static get observedAttributes() {
-                return ['prop'];
-              }
-            }
-            window.customElements.define(tagName, Minimal);
+          test('measures registration', function () {
+            var tagName = 'registered-v0-element';
+            document.registerElement(
+              tagName, {
+                prototype: Object.create(HTMLElement.prototype)
+              });
 
-            // We always measure registration.
             var measurements = window._getElementMeasures();
             expect(measurements.length).to.deep.equal(1);
             var measurement = measurements[0];
             expect(measurement.tagName).to.equal(tagName);
             expect(measurement.operation).to.equal('registered');
             expect(measurement.duration).to.be.at.least(0);
-            performance.clearMarks();
-            performance.clearMeasures();
-
-            // We don't measure callbacks that aren't there, because
-            // any observable cost is going to be due to polydev, and thus
-            // measurement error.
-            var element = document.createElement(tagName);
-            document.body.appendChild(element);
-            element.setAttribute('prop', 'value');
-            document.body.removeChild(element);
-            var measurements = window._getElementMeasures();
-            expect(measurements.length).to.deep.equal(0);
           });
+        });
+      }
 
-          test('support calling element constructors directly', function() {
-            class Minimal extends HTMLElement {}
-            customElements.define('minimal-v1-call-constructor', Minimal);
-            var minimal = new Minimal();
+      if (window.customElements) {
+        class v1Elem extends HTMLElement {
+          static get observedAttributes() {
+            return ['prop'];
+          }
+          connectedCallback() { }
+          disconnectedCallback() { }
+          attributeChangedCallback() { }
+        }
+        window.customElements.define(
+          'all-callbacks-vanilla-v1-element', v1Elem);
+
+        suite('can measure a vanilla v1 element', function () {
+          testCanMeasureStandardCallbacks('all-callbacks-vanilla-v1-element');
+
+          test('measures registration', function () {
+            var tagName = 'registered-v1-element';
+            window.customElements.define(
+              tagName, class extends HTMLElement { });
+
             var measurements = window._getElementMeasures();
             expect(measurements.length).to.deep.equal(1);
-            expect(measurements.map(function(m) {return m.tagName})).to.deep.equal(['minimal-v1-call-constructor']);
-            expect(measurements.map(function(m) {return m.operation})).to.deep.equal(['registered']);
+            var measurement = measurements[0];
+            expect(measurement.tagName).to.equal(tagName);
+            expect(measurement.operation).to.equal('registered');
+            expect(measurement.duration).to.be.at.least(0);
           });
+        });
 
-          /**
-           * This code is to ensure that we don't mess up the prototype
-           * of v1 custom elements. The real test is that the methods and
-           * properties exist on `this` as expected.
-           */
-          let numberConstructed = 0;
-          let numberConnected = 0;
-          class v1CountingElement extends HTMLElement {
-            constructor() {
-              super();
-              this.countConstructed();
-            }
-            countConstructed() {
-              this.constructedOrder = ++numberConstructed;
-            }
-            connectedCallback() {
-              this.countAttached();
-            }
-            countAttached() {
-              this.connectedOrder = ++numberConnected;
+        test('doesn\'t measure callbacks that aren\'t there', function () {
+          var tagName = 'minimal-v1-element';
+          class Minimal extends HTMLElement {
+            static get observedAttributes() {
+              return ['prop'];
             }
           }
-          window.customElements.define('v1-counting-element', v1CountingElement);
-          const testName =
-              'constructs v1 elements with the expected prototypes';
-          test.only(testName, function () {
-            expect(numberConnected).to.be.equal(0);
-            expect(numberConstructed).to.be.equal(0);
+          window.customElements.define(tagName, Minimal);
 
-            var instance = document.createElement('v1-counting-element');
-            expect(numberConnected).to.be.equal(0);
-            expect(numberConstructed).to.be.equal(1);
-            expect(instance.constructedOrder).to.be.equal(1);
-            expect(instance.connectedOrder).to.be.equal(undefined);
+          // We always measure registration.
+          var measurements = window._getElementMeasures();
+          expect(measurements.length).to.deep.equal(1);
+          var measurement = measurements[0];
+          expect(measurement.tagName).to.equal(tagName);
+          expect(measurement.operation).to.equal('registered');
+          expect(measurement.duration).to.be.at.least(0);
+          performance.clearMarks();
+          performance.clearMeasures();
 
-            document.body.appendChild(instance);
-            expect(numberConnected).to.be.equal(1);
-            expect(numberConstructed).to.be.equal(1);
-            expect(instance.constructedOrder).to.be.equal(1);
-            expect(instance.connectedOrder).to.be.equal(1);
+          // We don't measure callbacks that aren't there, because
+          // any observable cost is going to be due to polydev, and thus
+          // measurement error.
+          var element = document.createElement(tagName);
+          document.body.appendChild(element);
+          element.setAttribute('prop', 'value');
+          document.body.removeChild(element);
+          var measurements = window._getElementMeasures();
+          expect(measurements.length).to.deep.equal(0);
+        });
 
-            var secondInstance = document.createElement('v1-counting-element');
-            document.body.appendChild(secondInstance);
-            expect(numberConnected).to.be.equal(2);
-            expect(numberConstructed).to.be.equal(2);
-            expect(instance.constructedOrder).to.be.equal(1);
-            expect(instance.connectedOrder).to.be.equal(1);
-            expect(secondInstance.constructedOrder).to.be.equal(2);
-            expect(secondInstance.connectedOrder).to.be.equal(2);
-          });
+        test('support calling element constructors directly', function () {
+          class Minimal extends HTMLElement { }
+          customElements.define('minimal-v1-call-constructor', Minimal);
+          var minimal = new Minimal();
+          var measurements = window._getElementMeasures();
+          expect(measurements.length).to.deep.equal(1);
+          expect(measurements.map(function (m) { return m.tagName })).to.deep.equal(['minimal-v1-call-constructor']);
+          expect(measurements.map(function (m) { return m.operation })).to.deep.equal(['registered']);
+        });
+
+        /**
+         * This code is to ensure that we don't mess up the prototype
+         * of v1 custom elements. The real test is that the methods and
+         * properties exist on `this` as expected.
+         */
+        let numberConstructed = 0;
+        let numberConnected = 0;
+        class v1CountingElement extends HTMLElement {
+          constructor() {
+            super();
+            this.countConstructed();
+          }
+          countConstructed() {
+            this.constructedOrder = ++numberConstructed;
+          }
+          connectedCallback() {
+            this.countAttached();
+          }
+          countAttached() {
+            this.connectedOrder = ++numberConnected;
+          }
         }
+        window.customElements.define('v1-counting-element', v1CountingElement);
+        const testName =
+          'constructs v1 elements with the expected prototypes';
+        test.only(testName, function () {
+          expect(numberConnected).to.be.equal(0);
+          expect(numberConstructed).to.be.equal(0);
 
-        if (window.Polymer) {
-          Polymer({
-            is: 'minimal-polymer-element',
-            properties: {
-              prop: {
-                type: String,
-                notify: true
-              }
+          var instance = document.createElement('v1-counting-element');
+          expect(numberConnected).to.be.equal(0);
+          expect(numberConstructed).to.be.equal(1);
+          expect(instance.constructedOrder).to.be.equal(1);
+          expect(instance.connectedOrder).to.be.equal(undefined);
+
+          document.body.appendChild(instance);
+          expect(numberConnected).to.be.equal(1);
+          expect(numberConstructed).to.be.equal(1);
+          expect(instance.constructedOrder).to.be.equal(1);
+          expect(instance.connectedOrder).to.be.equal(1);
+
+          var secondInstance = document.createElement('v1-counting-element');
+          document.body.appendChild(secondInstance);
+          expect(numberConnected).to.be.equal(2);
+          expect(numberConstructed).to.be.equal(2);
+          expect(instance.constructedOrder).to.be.equal(1);
+          expect(instance.connectedOrder).to.be.equal(1);
+          expect(secondInstance.constructedOrder).to.be.equal(2);
+          expect(secondInstance.connectedOrder).to.be.equal(2);
+        });
+      }
+
+      if (window.Polymer) {
+        Polymer({
+          is: 'minimal-polymer-element',
+          properties: {
+            prop: {
+              type: String,
+              notify: true
             }
-          });
-          suite('can measure a Polymer element', function() {
-            testCanMeasureStandardCallbacks('minimal-polymer-element');
+          }
+        });
+        suite('can measure a Polymer element', function () {
+          testCanMeasureStandardCallbacks('minimal-polymer-element');
 
-            test('measures registration', function() {
-              var tagName = 'registered-polymer-element';
-              Polymer({is: tagName});
+          test('measures registration', function () {
+            var tagName = 'registered-polymer-element';
+            Polymer({ is: tagName });
 
-              var measurements = window._getElementMeasures();
-              expect(measurements.length).to.deep.equal(1);
-              var measurement = measurements[0];
-              expect(measurement.tagName).to.equal(tagName);
-              expect(measurement.operation).to.equal('registered');
-              expect(measurement.duration).to.be.at.least(0);
-            });
-
-            test('measures time involved in setting a property', function() {
-              const tagName = 'minimal-polymer-element';
-              var element = document.createElement(tagName);
-              clearMeasurements();
-              element.prop = 'new value';
-
-              var measurements = window._getElementMeasures();
-              expect(measurements.length).to.deep.equal(1);
-              var measurement = measurements[0];
-              expect(measurement.tagName).to.equal(tagName);
-              expect(measurement.operation).to.equal('data');
-              expect(measurement.duration).to.be.at.least(0);
-            });
+            var measurements = window._getElementMeasures();
+            expect(measurements.length).to.deep.equal(1);
+            var measurement = measurements[0];
+            expect(measurement.tagName).to.equal(tagName);
+            expect(measurement.operation).to.equal('registered');
+            expect(measurement.duration).to.be.at.least(0);
           });
 
-          // TODO(rictic): test measurment of data binding for Polymer 2.0
-          //     elements.
-        }
-      });
-    </script>
+          test('measures time involved in setting a property', function () {
+            const tagName = 'minimal-polymer-element';
+            var element = document.createElement(tagName);
+            clearMeasurements();
+            element.prop = 'new value';
+
+            var measurements = window._getElementMeasures();
+            expect(measurements.length).to.deep.equal(1);
+            var measurement = measurements[0];
+            expect(measurement.tagName).to.equal(tagName);
+            expect(measurement.operation).to.equal('data');
+            expect(measurement.duration).to.be.at.least(0);
+          });
+        });
+
+        // TODO(rictic): test measurment of data binding for Polymer 2.0
+        //     elements.
+      }
+    });
+  </script>
 </body>
 
 </html>

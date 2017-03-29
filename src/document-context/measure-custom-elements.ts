@@ -235,11 +235,22 @@ interface Console {
       if (p !== _PolymerWrapper) {
         console.timeStamp('Polymer defined');
         _Polymer = p;
+        if (typeof p === 'function') {
+          // Overwrite this getter/setter with just the newly set value.
+          Object.defineProperty(window, 'Polymer', {
+            value: _PolymerWrapper,
+            configurable: true,
+            writable: true,
+            enumerable: true
+          });
+        }
       }
     },
     get: function() {
-      return (typeof _Polymer === 'function') ? _PolymerWrapper : _Polymer;
+      return _Polymer;
     },
+    configurable: true,
+    enumerable: true
   });
 
 
@@ -359,5 +370,3 @@ interface Console {
     }
   });
 })();
-
-performance.clearMarks();

@@ -1,0 +1,152 @@
+<!--
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<!doctype html>
+<html>
+
+<head>
+  <title>element-zones.js Test</title>
+  <meta charset="UTF-8">
+  <script src='../../bower_components/web-component-tester/browser.js'></script>
+  <script src="../../bower_components/webcomponentsjs/webcomponents.js"></script>
+  <script src='../../src/document-context/measure-custom-elements.js'></script>
+  <script>
+    Polymer = {
+      dom: 'shadow',
+      lazyRegister: true,
+      zoobar: 'drunk polar bear'
+    };
+  </script>
+  <link rel="import" href="./modded-polymer.html">
+
+</head>
+
+<body>
+  <script>
+    window.addEventListener('WebComponentsReady', function () {
+      suite('measurements with wrapped Polymer', function () {
+        var performance = window.performance;
+        if (!performance || !performance.mark || !performance.measure) {
+          test('can\'t do anything in browsers without performance.mark and measure');
+          return;
+        }
+        function clearMeasurements() {
+          performance.clearMarks();
+          performance.clearMeasures();
+        };
+        setup(function () {
+          clearMeasurements();
+        });
+
+        function testCanMeasureStandardCallbacks(tagName) {
+          test('measures connecting', function () {
+            var element = document.createElement(tagName);
+            clearMeasurements();
+            document.body.appendChild(element);
+
+            function cleanup() {
+              element.parentElement.removeChild(element);;
+            }
+            // Under the polyfill, connected and disconnected callbacks
+            //   are asynchronous.
+            return Promise.resolve().then(function () {
+              var measurements = window._getElementMeasures();
+              expect(measurements.length).to.deep.equal(1);
+              var measurement = measurements[0];
+              expect(measurement.tagName).to.equal(tagName);
+              expect(measurement.operation).to.equal('connected');
+              expect(measurement.duration).to.be.at.least(0);
+            }).then(cleanup, function (err) {
+              cleanup();
+              throw err;
+            });
+          });
+          test('measures disconnecting', function () {
+            var element = document.createElement(tagName);
+            document.body.appendChild(element);
+            return Promise.resolve().then(function () {
+              clearMeasurements();
+              element.parentElement.removeChild(element);
+            }).then(function () {
+              var measurements = window._getElementMeasures();
+              expect(measurements.length).to.deep.equal(1);
+              var measurement = measurements[0];
+              expect(measurement.tagName).to.equal(tagName);
+              expect(measurement.operation).to.equal('disconnected');
+              expect(measurement.duration).to.be.at.least(0);
+            });
+          });
+
+          test('measures attributes changing', function () {
+            var element = document.createElement(tagName);
+            document.body.appendChild(element);
+            clearMeasurements();
+            element.setAttribute('prop', 'new value');
+
+            var measurements = window._getElementMeasures()
+              .filter(m => m.operation === 'attributeChanged');
+            expect(measurements.length).to.deep.equal(1);
+            var measurement = measurements[0];
+            expect(measurement.tagName).to.equal(tagName);
+            expect(measurement.operation).to.equal('attributeChanged');
+            expect(measurement.duration).to.be.at.least(0);
+
+            element.parentElement.removeChild(element);
+          });
+        }
+
+        if (window.Polymer) {
+          debugger;
+          Polymer({
+            is: 'minimal-polymer-element',
+            properties: {
+              prop: {
+                type: String,
+                notify: true,
+                value: 'base'
+              }
+            }
+          });
+          suite('can measure a Polymer element', function () {
+            testCanMeasureStandardCallbacks('minimal-polymer-element');
+
+            test('measures registration', function () {
+              var tagName = 'registered-polymer-element';
+              Polymer({ is: tagName });
+
+              var measurements = window._getElementMeasures();
+              expect(measurements.length).to.deep.equal(1);
+              var measurement = measurements[0];
+              expect(measurement.tagName).to.equal(tagName);
+              expect(measurement.operation).to.equal('registered');
+              expect(measurement.duration).to.be.at.least(0);
+            });
+
+            test('the wrapped Polymer function gets called', () => {
+              let counterBefore = timesWrapperIsCalled;
+              // Once for minimal-polymer-element, maybe once for
+              //   registered-polymer-element
+              expect(counterBefore > 0).to.equal(true);
+              Polymer({ is: 'another-elem' });
+              expect(timesWrapperIsCalled).to.equal(counterBefore + 1);
+            });
+          });
+
+          test('settings are preserved', () => {
+            expect(Polymer.Settings.dom).to.equal('shadow');
+            expect(Polymer.Settings.lazyRegister).to.equal(true);
+            expect(Polymer.Settings.zoobar).to.equal('drunk polar bear');
+          });
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>
