@@ -12,9 +12,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   header as necessary.
 -->
 
+## [0.0.9] - 2017-03-29
+
 * Made the wrapping of the Polymer function more robust against code that subsequently also wraps the Polymer function.
 
-## [0.0.8] - 2016-03-23
+## [0.0.8] - 2017-03-23
 
 * Fix measurement of v1 Custom Elements. Had to drop support for measuring v1 element creation, at least for the moment.
 
